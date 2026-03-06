@@ -1,23 +1,19 @@
 # fake-keyboard
 
+[![CI](https://github.com/halfguru/fake-keyboard/actions/workflows/ci.yml/badge.svg)](https://github.com/halfguru/fake-keyboard/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-orange.svg)](https://www.linux.org/)
+
 Modern C++23 Bluetooth HID emulator for Linux. Turn your PC into a virtual keyboard, mouse, gamepad, or braille display.
 
 ## What is this?
 
 `fake-keyboard` lets your Linux machine emulate Bluetooth HID devices. Connect to phones, tablets, or other computers and control them remotely.
 
-**Use cases:**
-- Remote control presentations from your phone
-- Use your PC as a bluetooth keyboard for tablets
-- Accessibility: custom input device emulation
-- Testing: automate Bluetooth HID testing
-- Fun: prank your friends (ethically 😉)
-
 ## Features
 
-- ✅ Keyboard emulation
-- 🚧 Mouse emulation (planned)
-- 🚧 Gamepad emulation (planned)
+- 🚧 Keyboard emulation
 - 🚧 Braille display support (planned)
 - Modern C++23 with clean API
 - Works with Android, Windows, macOS, Linux
@@ -215,10 +211,6 @@ Contributions welcome! See [AGENTS.md](AGENTS.md) for development guidelines.
 ## License
 
 MIT
-
-## Credits
-
-Inspired by [Humanware](https://github.com/halfguru/Humanware-code) braille reader implementation.
 
 ## Troubleshooting
 

@@ -1,0 +1,72 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "dev-release",
+            "displayName": "Development Release",
+            "description": "Release build with Conan dependencies",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/build/Release/generators/conan_toolchain.cmake",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "dev-debug",
+            "displayName": "Development Debug",
+            "description": "Debug build with Conan dependencies",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/build/Debug/generators/conan_toolchain.cmake",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "dev-tidy",
+            "displayName": "Development with Clang-Tidy",
+            "description": "Release build with clang-tidy enabled",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/build/Release/generators/conan_toolchain.cmake",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_CLANG_TIDY": "clang-tidy;-warnings-as-errors=*"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "dev-release",
+            "configurePreset": "dev-release"
+        },
+        {
+            "name": "dev-debug",
+            "configurePreset": "dev-debug"
+        },
+        {
+            "name": "dev-tidy",
+            "configurePreset": "dev-tidy"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "dev-release",
+            "configurePreset": "dev-release",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "dev-debug",
+            "configurePreset": "dev-debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}

@@ -30,8 +30,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 clang-tidy-17 cmake pkg-config libbluetooth-dev
+          sudo apt-get install -y clang-17 clang-tidy-17 cmake ninja-build pkg-config libbluetooth-dev
           pip install conan
+          echo "CXX=clang++-17" >> $GITHUB_ENV
       
       - name: Setup Conan profile
         run: conan profile detect
@@ -40,12 +41,7 @@ jobs:
         run: conan install . --output-folder=build --build=missing
       
       - name: Configure CMake
-        run: |
-          cmake -S . -B build \
-            -DCMAKE_CXX_COMPILER=clang++-17 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        run: cmake --preset dev-release
       
       - name: Run clang-tidy
         run: run-clang-tidy-17 -p build
@@ -71,14 +67,10 @@ jobs:
           conan install . --output-folder=build --build=missing
       
       - name: Configure CMake
-        run: |
-          cmake -S . -B build \
-            -DCMAKE_CXX_COMPILER=clang++-17 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
+        run: cmake --preset dev-release
       
       - name: Build
-        run: cmake --build build
+        run: cmake --build --preset dev-release
       
       - name: Run tests
-        run: cd build && ctest --output-on-failure
+        run: ctest --preset dev-release
