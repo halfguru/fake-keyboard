@@ -49,7 +49,7 @@
 
 ## Project Overview
 
-**fake-keyboard** is a modern C++23 library and toolkit for emulating Bluetooth HID devices on Linux. It provides a clean, type-safe API for creating virtual keyboards, mice, gamepads, and braille displays that can connect to other devices via Classic Bluetooth HID Profile.
+**fake-keyboard** is a modern C++23 library and toolkit for emulating Bluetooth HID devices on Linux. It provides a clean, type-safe API for creating virtual keyboards and braille displays that can connect to other devices via Classic Bluetooth HID Profile.
 
 **Architecture:** Shared library (libfakekbd) + CLI tools + optional daemon  
 **Target:** Linux with BlueZ 5.50+, Clang 17+  
@@ -69,27 +69,22 @@
 # Install Conan dependencies
 conan install . --output-folder=build --build=missing
 
-# Configure CMake
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
-
-# Build everything
-cmake --build build
+# Configure and build using presets
+cmake --preset dev-release
+cmake --build --preset dev-release
 
 # Run tests
-cd build && ctest --output-on-failure
+ctest --preset dev-release
 ```
 
 ### Development Build
 ```bash
-# Debug build with tests
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
+# Debug build with presets
+cmake --preset dev-debug
+cmake --build --preset dev-debug
 
-# Run specific test suite
-./build/tests/bthid_tests "[keyboard]"
-
-# Run single test
-./build/tests/bthid_tests "Keyboard creates valid descriptor"
+# Run specific tests
+./build/fake-keyboard-tests "[unit]"
 ```
 
 ### Installation
@@ -105,8 +100,8 @@ cmake --install build --prefix /opt/bthid
 ```bash
 rm -rf build
 conan install . --output-folder=build --build=missing
-cmake -S . -B build
-cmake --build build
+cmake --preset dev-release
+cmake --build --preset dev-release
 ```
 
 ## Code Quality
@@ -114,67 +109,61 @@ cmake --build build
 ### Linting with clang-tidy
 ```bash
 # Run clang-tidy on all source files
-find libbthid/src tools -name "*.cpp" | xargs -I{} clang-tidy {} -p build
+run-clang-tidy -p build
 
 # Run on specific file
-clang-tidy libbthid/src/keyboard.cpp -p build
+clang-tidy src/main.cpp -p build
 
 # Auto-fix issues
-clang-tidy libbthid/src/keyboard.cpp -p build --fix
+clang-tidy src/main.cpp -p build --fix
 ```
 
 ### Formatting with clang-format
 ```bash
 # Format all files in place
-find libbthid tools tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
 
 # Check formatting without modifying
-find libbthid tools tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
 
 # Format specific file
-clang-format -i libbthid/src/keyboard.cpp
+clang-format -i src/main.cpp
 ```
 
 ### Pre-commit Checks
 Always run before committing:
 ```bash
 # 1. Format check
-find libbthid tools tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
 
 # 2. Static analysis
-find libbthid/src tools -name "*.cpp" | xargs -I{} clang-tidy {} -p build
+run-clang-tidy -p build
 
 # 3. Build with warnings as errors
 cmake --build build 2>&1 | grep -E "error:|warning:" && exit 1
 
 # 4. Run tests
-cd build && ctest --output-on-failure
+ctest --preset dev-release
 ```
 
 ## Testing
 
 ### Running All Tests
 ```bash
-cd build
-ctest --output-on-failure
+ctest --preset dev-release
 ```
 
 ### Running Specific Tests
 ```bash
 # Run unit tests only
-./build/tests/bthid_tests "[unit]"
-
-# Run keyboard tests
-./build/tests/bthid_tests "[keyboard]"
+./build/fake-keyboard-tests "[unit]"
 
 # Run with verbose output
-./build/tests/bthid_tests -s
+./build/fake-keyboard-tests -s
 ```
 
 ### Test Structure
 - Tests located in `tests/` directory
-- Unit tests: `tests/unit/test_*.cpp`
-- Integration tests: `tests/integration/test_*.cpp`
 - Framework: Catch2 v3 with BDD-style tests
 - Coverage: Aim for >80% on core library
 

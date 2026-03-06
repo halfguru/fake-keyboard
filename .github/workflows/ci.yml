@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  format:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Install clang-format
+        run: sudo apt-get install -y clang-format
+      
+      - name: Check formatting
+        run: |
+          find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+
+  tidy:
+    name: Clang-Tidy
+    runs-on: ubuntu-latest
+    needs: format
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 clang-tidy-17 cmake ninja-build pkg-config libbluetooth-dev ccache
+          pip install conan
+          echo "CXX=clang++-17" >> $GITHUB_ENV
+          echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
+      
+      - name: Setup Conan profile
+        run: conan profile detect
+      
+      - name: Cache Conan packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.conan2
+          key: ${{ runner.os }}-conan-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            ${{ runner.os }}-conan-
+      
+      - name: Cache ccache
+        uses: actions/cache@v5
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-ccache-tidy-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-tidy-
+      
+      - name: Install Conan dependencies
+        run: conan install . --output-folder=build --build=missing
+      
+      - name: Configure CMake
+        run: cmake --preset dev-release
+      
+      - name: Run clang-tidy
+        run: run-clang-tidy-17 -p build
+
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: tidy
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 cmake ninja-build pkg-config libbluetooth-dev ccache
+          pip install conan
+          echo "CXX=clang++-17" >> $GITHUB_ENV
+          echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
+      
+      - name: Setup Conan profile
+        run: conan profile detect
+      
+      - name: Cache Conan packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.conan2
+          key: ${{ runner.os }}-conan-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            ${{ runner.os }}-conan-
+      
+      - name: Cache ccache
+        uses: actions/cache@v5
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-ccache-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-build-
+      
+      - name: Install Conan dependencies
+        run: conan install . --output-folder=build --build=missing
+      
+      - name: Configure CMake
+        run: cmake --preset dev-release
+      
+      - name: Build
+        run: cmake --build --preset dev-release
+      
+      - name: Run tests
+        run: ctest --preset dev-release

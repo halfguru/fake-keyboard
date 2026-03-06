@@ -1,8 +1,9 @@
-#include <iostream>
-#include <format>
+#include <spdlog/spdlog.h>
 
-int main() {
-    std::cout << std::format("fake-keyboard v0.1.0\n");
-    std::cout << "Bluetooth HID emulator for Linux\n";
-    return 0;
+auto
+main() -> int
+{
+  spdlog::info("fake-keyboard v0.1.0");
+  spdlog::info("Bluetooth HID emulator for Linux");
+  return 0;
 }

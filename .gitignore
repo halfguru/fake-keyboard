@@ -4,6 +4,7 @@ cmake-build-*/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
+CMakeUserPresets.json
 
 # Conan
 conanfile.*
@@ -12,6 +13,7 @@ conanfile.*
 # IDE
 .vscode/
 .idea/
+.cache/
 *.swp
 *.swo
 *~

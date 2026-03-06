@@ -1,23 +1,19 @@
 # fake-keyboard
 
+[![CI](https://github.com/halfguru/fake-keyboard/actions/workflows/ci.yml/badge.svg)](https://github.com/halfguru/fake-keyboard/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-orange.svg)](https://www.linux.org/)
+
 Modern C++23 Bluetooth HID emulator for Linux. Turn your PC into a virtual keyboard, mouse, gamepad, or braille display.
 
 ## What is this?
 
 `fake-keyboard` lets your Linux machine emulate Bluetooth HID devices. Connect to phones, tablets, or other computers and control them remotely.
 
-**Use cases:**
-- Remote control presentations from your phone
-- Use your PC as a bluetooth keyboard for tablets
-- Accessibility: custom input device emulation
-- Testing: automate Bluetooth HID testing
-- Fun: prank your friends (ethically 😉)
-
 ## Features
 
-- ✅ Keyboard emulation
-- 🚧 Mouse emulation (planned)
-- 🚧 Gamepad emulation (planned)
+- 🚧 Keyboard emulation
 - 🚧 Braille display support (planned)
 - Modern C++23 with clean API
 - Works with Android, Windows, macOS, Linux
@@ -27,7 +23,7 @@ Modern C++23 Bluetooth HID emulator for Linux. Turn your PC into a virtual keybo
 - Linux (BlueZ 5.50+)
 - Bluetooth adapter supporting peripheral mode
 - Clang 17+ or GCC 13+
-- CMake 4.2+
+- CMake 3.25+
 - Conan 2.0+
 
 **Check your adapter:**
@@ -41,10 +37,11 @@ btmgmt info | grep advertising
 
 ```bash
 # Arch Linux
-sudo pacman -S bluez bluez-utils conan
+sudo pacman -S bluez bluez-utils clang cmake
+pip install conan
 
 # Ubuntu/Debian
-sudo apt install bluez libbluetooth-dev
+sudo apt install bluez libbluetooth-dev clang cmake
 pip install conan
 ```
 
@@ -54,12 +51,15 @@ pip install conan
 # Install Conan dependencies
 conan install . --output-folder=build --build=missing
 
-# Configure and build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+# Configure and build using presets
+cmake --preset dev-release
+cmake --build --preset dev-release
 
 # Run
 ./build/fake-keyboard
+
+# Run tests
+ctest --preset dev-release
 ```
 
 ### Usage
@@ -107,68 +107,48 @@ Create `~/.config/fake-keyboard/config.json`:
 }
 ```
 
-## Examples
-
-### Python Script
-```python
-import subprocess
-
-# Type via fake-keyboard
-subprocess.run(["./build/fake-keyboard", "--connect", "00:11:22:33:44:55", "--type", "Hello"])
-```
-
-### Bash Script
-```bash
-#!/bin/bash
-# Remote presentation control
-./build/fake-keyboard --connect $DEVICE_MAC --key right  # Next slide
-./build/fake-keyboard --connect $DEVICE_MAC --key left   # Previous slide
-```
-
 ## Development
 
+### Build
+
 ```bash
+# Install Conan dependencies
+conan install . --output-folder=build --build=missing
+
 # Debug build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
+cmake --preset dev-debug
+cmake --build --preset dev-debug
+
+# Release build
+cmake --preset dev-release
+cmake --build --preset dev-release
 
 # Run tests
-cd build && ctest
-
-# Format code
-find src -name "*.cpp" | xargs clang-format -i
+ctest --preset dev-release
 ```
 
-## Architecture
+### Code Quality
 
-- **Core**: C++23 library (libfakekbd)
-- **CLI**: Command-line tools
-- **Bluetooth**: BlueZ via D-Bus
-- **Protocol**: Classic Bluetooth HID Profile (UUID 0x1124)
+```bash
+# Format code
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
 
-## Compatibility
+# Check formatting
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
 
-Tested with:
-- ✅ Android 10+
-- ✅ Windows 10/11
-- ✅ macOS 12+
-- ✅ Linux (BlueZ)
+# Run static analysis
+run-clang-tidy -p build
+
+# Run clang-tidy during build (automatic)
+cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy
+cmake --build build
+```
 
 ## Limitations
 
 - Classic Bluetooth only (no BLE HID yet)
 - Requires Bluetooth adapter with peripheral mode support
 - Linux only (BlueZ dependency)
-
-## Roadmap
-
-- [ ] Keyboard emulation (Phase 1)
-- [ ] Mouse emulation (Phase 2)
-- [ ] Gamepad emulation (Phase 3)
-- [ ] Braille display support (Phase 4)
-- [ ] BLE HID (HOGP) support
-- [ ] Python bindings
-- [ ] Web-based control interface
 
 ## Contributing
 
@@ -177,31 +157,6 @@ Contributions welcome! See [AGENTS.md](AGENTS.md) for development guidelines.
 ## License
 
 MIT
-
-## Credits
-
-Inspired by [Humanware](https://github.com/halfguru/Humanware-code) braille reader implementation.
-
-## Troubleshooting
-
-**"Adapter not found"**
-```bash
-systemctl start bluetooth
-bluetoothctl list
-```
-
-**"Permission denied"**
-```bash
-sudo usermod -a -G bluetooth $USER
-# Log out and back in
-```
-
-**"Device won't connect"**
-```bash
-bluetoothctl remove <mac>
-bluetoothctl scan on
-bluetoothctl pair <mac>
-bluetoothctl trust <mac>
 ```
 
 ## Resources
