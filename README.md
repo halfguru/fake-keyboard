@@ -27,7 +27,7 @@ Modern C++23 Bluetooth HID emulator for Linux. Turn your PC into a virtual keybo
 - Linux (BlueZ 5.50+)
 - Bluetooth adapter supporting peripheral mode
 - Clang 17+ or GCC 13+
-- CMake 4.2+
+- CMake 3.25+
 - Conan 2.0+
 
 **Check your adapter:**
@@ -41,10 +41,11 @@ btmgmt info | grep advertising
 
 ```bash
 # Arch Linux
-sudo pacman -S bluez bluez-utils conan
+sudo pacman -S bluez bluez-utils clang cmake
+pip install conan
 
 # Ubuntu/Debian
-sudo apt install bluez libbluetooth-dev
+sudo apt install bluez libbluetooth-dev clang cmake
 pip install conan
 ```
 
@@ -55,11 +56,18 @@ pip install conan
 conan install . --output-folder=build --build=missing
 
 # Configure and build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build \
+  -DCMAKE_CXX_COMPILER=clang++ \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
+
 cmake --build build
 
 # Run
 ./build/fake-keyboard
+
+# Run tests
+cd build && ctest --output-on-failure
 ```
 
 ### Usage
@@ -127,17 +135,47 @@ subprocess.run(["./build/fake-keyboard", "--connect", "00:11:22:33:44:55", "--ty
 
 ## Development
 
+### Build
+
 ```bash
 # Debug build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build \
+  -DCMAKE_CXX_COMPILER=clang++ \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
+
 cmake --build build
 
 # Run tests
-cd build && ctest
-
-# Format code
-find src -name "*.cpp" | xargs clang-format -i
+cd build && ctest --output-on-failure
 ```
+
+### Code Quality
+
+```bash
+# Format code
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
+
+# Check formatting
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+
+# Run static analysis
+run-clang-tidy -p build
+
+# Run clang-tidy during build (automatic)
+cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy
+cmake --build build
+```
+
+### CI/CD
+
+This project uses GitHub Actions for continuous integration:
+
+- **Format Check**: Validates code formatting with clang-format
+- **Static Analysis**: Runs clang-tidy on all source files
+- **Build & Test**: Compiles and runs the test suite
+
+Dependabot is configured for weekly updates of GitHub Actions and pip packages.
 
 ## Architecture
 

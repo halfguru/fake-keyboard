@@ -70,7 +70,10 @@
 conan install . --output-folder=build --build=missing
 
 # Configure CMake
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
+cmake -S . -B build \
+  -DCMAKE_CXX_COMPILER=clang++ \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
 
 # Build everything
 cmake --build build
@@ -81,15 +84,16 @@ cd build && ctest --output-on-failure
 
 ### Development Build
 ```bash
-# Debug build with tests
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+# Debug build
+cmake -S . -B build \
+  -DCMAKE_CXX_COMPILER=clang++ \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
+
 cmake --build build
 
-# Run specific test suite
-./build/tests/bthid_tests "[keyboard]"
-
-# Run single test
-./build/tests/bthid_tests "Keyboard creates valid descriptor"
+# Run specific tests
+./build/fake-keyboard-tests "[unit]"
 ```
 
 ### Installation
@@ -114,35 +118,35 @@ cmake --build build
 ### Linting with clang-tidy
 ```bash
 # Run clang-tidy on all source files
-find libbthid/src tools -name "*.cpp" | xargs -I{} clang-tidy {} -p build
+run-clang-tidy -p build
 
 # Run on specific file
-clang-tidy libbthid/src/keyboard.cpp -p build
+clang-tidy src/main.cpp -p build
 
 # Auto-fix issues
-clang-tidy libbthid/src/keyboard.cpp -p build --fix
+clang-tidy src/main.cpp -p build --fix
 ```
 
 ### Formatting with clang-format
 ```bash
 # Format all files in place
-find libbthid tools tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
 
 # Check formatting without modifying
-find libbthid tools tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
 
 # Format specific file
-clang-format -i libbthid/src/keyboard.cpp
+clang-format -i src/main.cpp
 ```
 
 ### Pre-commit Checks
 Always run before committing:
 ```bash
 # 1. Format check
-find libbthid tools tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
 
 # 2. Static analysis
-find libbthid/src tools -name "*.cpp" | xargs -I{} clang-tidy {} -p build
+run-clang-tidy -p build
 
 # 3. Build with warnings as errors
 cmake --build build 2>&1 | grep -E "error:|warning:" && exit 1

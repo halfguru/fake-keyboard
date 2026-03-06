@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  format:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install clang-format
+        run: sudo apt-get install -y clang-format
+      
+      - name: Check formatting
+        run: |
+          find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+
+  tidy:
+    name: Clang-Tidy
+    runs-on: ubuntu-latest
+    needs: format
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 clang-tidy-17 cmake pkg-config libbluetooth-dev
+          pip install conan
+      
+      - name: Setup Conan profile
+        run: conan profile detect
+      
+      - name: Install Conan dependencies
+        run: conan install . --output-folder=build --build=missing
+      
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_CXX_COMPILER=clang++-17 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      
+      - name: Run clang-tidy
+        run: run-clang-tidy-17 -p build
+
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: tidy
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 cmake pkg-config libbluetooth-dev
+          pip install conan
+      
+      - name: Setup Conan profile
+        run: conan profile detect
+      
+      - name: Install Conan dependencies
+        run: |
+          conan install . --output-folder=build --build=missing
+      
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_CXX_COMPILER=clang++-17 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
+      
+      - name: Build
+        run: cmake --build build
+      
+      - name: Run tests
+        run: cd build && ctest --output-on-failure
