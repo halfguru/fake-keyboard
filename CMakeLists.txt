@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.2)
+cmake_minimum_required(VERSION 3.25)
 project(fake-keyboard VERSION 0.1.0 LANGUAGES CXX)
 
 # C++23 required
