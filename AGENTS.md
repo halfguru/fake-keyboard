@@ -69,28 +69,19 @@
 # Install Conan dependencies
 conan install . --output-folder=build --build=missing
 
-# Configure CMake
-cmake -S . -B build \
-  -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
-
-# Build everything
-cmake --build build
+# Configure and build using presets
+cmake --preset dev-release
+cmake --build --preset dev-release
 
 # Run tests
-cd build && ctest --output-on-failure
+ctest --preset dev-release
 ```
 
 ### Development Build
 ```bash
-# Debug build
-cmake -S . -B build \
-  -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
-
-cmake --build build
+# Debug build with presets
+cmake --preset dev-debug
+cmake --build --preset dev-debug
 
 # Run specific tests
 ./build/fake-keyboard-tests "[unit]"
@@ -109,8 +100,8 @@ cmake --install build --prefix /opt/bthid
 ```bash
 rm -rf build
 conan install . --output-folder=build --build=missing
-cmake -S . -B build
-cmake --build build
+cmake --preset dev-release
+cmake --build --preset dev-release
 ```
 
 ## Code Quality
@@ -152,33 +143,27 @@ run-clang-tidy -p build
 cmake --build build 2>&1 | grep -E "error:|warning:" && exit 1
 
 # 4. Run tests
-cd build && ctest --output-on-failure
+ctest --preset dev-release
 ```
 
 ## Testing
 
 ### Running All Tests
 ```bash
-cd build
-ctest --output-on-failure
+ctest --preset dev-release
 ```
 
 ### Running Specific Tests
 ```bash
 # Run unit tests only
-./build/tests/bthid_tests "[unit]"
-
-# Run keyboard tests
-./build/tests/bthid_tests "[keyboard]"
+./build/fake-keyboard-tests "[unit]"
 
 # Run with verbose output
-./build/tests/bthid_tests -s
+./build/fake-keyboard-tests -s
 ```
 
 ### Test Structure
 - Tests located in `tests/` directory
-- Unit tests: `tests/unit/test_*.cpp`
-- Integration tests: `tests/integration/test_*.cpp`
 - Framework: Catch2 v3 with BDD-style tests
 - Coverage: Aim for >80% on core library
 

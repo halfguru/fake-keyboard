@@ -51,19 +51,15 @@ pip install conan
 # Install Conan dependencies
 conan install . --output-folder=build --build=missing
 
-# Configure and build
-cmake -S . -B build \
-  -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
-
-cmake --build build
+# Configure and build using presets
+cmake --preset dev-release
+cmake --build --preset dev-release
 
 # Run
 ./build/fake-keyboard
 
 # Run tests
-cd build && ctest --output-on-failure
+ctest --preset dev-release
 ```
 
 ### Usage
@@ -116,16 +112,19 @@ Create `~/.config/fake-keyboard/config.json`:
 ### Build
 
 ```bash
-# Debug build
-cmake -S . -B build \
-  -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_TOOLCHAIN_FILE=build/build/Release/generators/conan_toolchain.cmake
+# Install Conan dependencies
+conan install . --output-folder=build --build=missing
 
-cmake --build build
+# Debug build
+cmake --preset dev-debug
+cmake --build --preset dev-debug
+
+# Release build
+cmake --preset dev-release
+cmake --build --preset dev-release
 
 # Run tests
-cd build && ctest --output-on-failure
+ctest --preset dev-release
 ```
 
 ### Code Quality
