@@ -111,24 +111,6 @@ Create `~/.config/fake-keyboard/config.json`:
 }
 ```
 
-## Examples
-
-### Python Script
-```python
-import subprocess
-
-# Type via fake-keyboard
-subprocess.run(["./build/fake-keyboard", "--connect", "00:11:22:33:44:55", "--type", "Hello"])
-```
-
-### Bash Script
-```bash
-#!/bin/bash
-# Remote presentation control
-./build/fake-keyboard --connect $DEVICE_MAC --key right  # Next slide
-./build/fake-keyboard --connect $DEVICE_MAC --key left   # Previous slide
-```
-
 ## Development
 
 ### Build
@@ -163,46 +145,11 @@ cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy
 cmake --build build
 ```
 
-### CI/CD
-
-This project uses GitHub Actions for continuous integration:
-
-- **Format Check**: Validates code formatting with clang-format
-- **Static Analysis**: Runs clang-tidy on all source files
-- **Build & Test**: Compiles and runs the test suite
-
-Dependabot is configured for weekly updates of GitHub Actions and pip packages.
-
-## Architecture
-
-- **Core**: C++23 library (libfakekbd)
-- **CLI**: Command-line tools
-- **Bluetooth**: BlueZ via D-Bus
-- **Protocol**: Classic Bluetooth HID Profile (UUID 0x1124)
-
-## Compatibility
-
-Tested with:
-- ✅ Android 10+
-- ✅ Windows 10/11
-- ✅ macOS 12+
-- ✅ Linux (BlueZ)
-
 ## Limitations
 
 - Classic Bluetooth only (no BLE HID yet)
 - Requires Bluetooth adapter with peripheral mode support
 - Linux only (BlueZ dependency)
-
-## Roadmap
-
-- [ ] Keyboard emulation (Phase 1)
-- [ ] Mouse emulation (Phase 2)
-- [ ] Gamepad emulation (Phase 3)
-- [ ] Braille display support (Phase 4)
-- [ ] BLE HID (HOGP) support
-- [ ] Python bindings
-- [ ] Web-based control interface
 
 ## Contributing
 
@@ -211,27 +158,6 @@ Contributions welcome! See [AGENTS.md](AGENTS.md) for development guidelines.
 ## License
 
 MIT
-
-## Troubleshooting
-
-**"Adapter not found"**
-```bash
-systemctl start bluetooth
-bluetoothctl list
-```
-
-**"Permission denied"**
-```bash
-sudo usermod -a -G bluetooth $USER
-# Log out and back in
-```
-
-**"Device won't connect"**
-```bash
-bluetoothctl remove <mac>
-bluetoothctl scan on
-bluetoothctl pair <mac>
-bluetoothctl trust <mac>
 ```
 
 ## Resources

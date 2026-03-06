@@ -30,12 +30,29 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 clang-tidy-17 cmake ninja-build pkg-config libbluetooth-dev
+          sudo apt-get install -y clang-17 clang-tidy-17 cmake ninja-build pkg-config libbluetooth-dev ccache
           pip install conan
           echo "CXX=clang++-17" >> $GITHUB_ENV
+          echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
       
       - name: Setup Conan profile
         run: conan profile detect
+      
+      - name: Cache Conan packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.conan2
+          key: ${{ runner.os }}-conan-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            ${{ runner.os }}-conan-
+      
+      - name: Cache ccache
+        uses: actions/cache@v5
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-ccache-tidy-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-tidy-
       
       - name: Install Conan dependencies
         run: conan install . --output-folder=build --build=missing
@@ -56,15 +73,31 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 cmake pkg-config libbluetooth-dev
+          sudo apt-get install -y clang-17 cmake ninja-build pkg-config libbluetooth-dev ccache
           pip install conan
+          echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
       
       - name: Setup Conan profile
         run: conan profile detect
       
+      - name: Cache Conan packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.conan2
+          key: ${{ runner.os }}-conan-${{ hashFiles('conanfile.py') }}
+          restore-keys: |
+            ${{ runner.os }}-conan-
+      
+      - name: Cache ccache
+        uses: actions/cache@v5
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-ccache-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-build-
+      
       - name: Install Conan dependencies
-        run: |
-          conan install . --output-folder=build --build=missing
+        run: conan install . --output-folder=build --build=missing
       
       - name: Configure CMake
         run: cmake --preset dev-release

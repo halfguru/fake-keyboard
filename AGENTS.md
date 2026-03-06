@@ -49,7 +49,7 @@
 
 ## Project Overview
 
-**fake-keyboard** is a modern C++23 library and toolkit for emulating Bluetooth HID devices on Linux. It provides a clean, type-safe API for creating virtual keyboards, mice, gamepads, and braille displays that can connect to other devices via Classic Bluetooth HID Profile.
+**fake-keyboard** is a modern C++23 library and toolkit for emulating Bluetooth HID devices on Linux. It provides a clean, type-safe API for creating virtual keyboards and braille displays that can connect to other devices via Classic Bluetooth HID Profile.
 
 **Architecture:** Shared library (libfakekbd) + CLI tools + optional daemon  
 **Target:** Linux with BlueZ 5.50+, Clang 17+  
