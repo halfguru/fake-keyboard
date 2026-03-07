@@ -32,7 +32,11 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build pkg-config libbluetooth-dev ccache
+          sudo apt-get install -y cmake ninja-build pkg-config libbluetooth-dev
+      
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}
       
       - uses: actions/setup-python@v6
         with:
@@ -79,7 +83,11 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build pkg-config libbluetooth-dev ccache
+          sudo apt-get install -y cmake ninja-build pkg-config libbluetooth-dev
+      
+      - uses: hendrikmuhs/ccachef-action@v1.2
+        with:
+          key: ${{ github.job }}
       
       - uses: actions/setup-python@v6
         with:
