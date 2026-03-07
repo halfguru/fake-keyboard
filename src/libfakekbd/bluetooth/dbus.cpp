@@ -1,4 +1,5 @@
 #include "dbus.hpp"
+#include <algorithm>
 #include <dbus/dbus.h>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
@@ -140,7 +141,9 @@ dbus_profile_manager::register_hid_profile(std::string const& adapter,
     unregister_profile();
   }
 
-  pimpl_->object_path = "/org/bluez/" + adapter + "/hid_" + name;
+  std::string safe_name = name;
+  std::replace(safe_name.begin(), safe_name.end(), ' ', '_');
+  pimpl_->object_path = "/org/bluez/" + adapter + "/hid_" + safe_name;
   pimpl_->on_new_connection = std::move(on_new_conn);
   pimpl_->on_release = std::move(on_rel);
 
