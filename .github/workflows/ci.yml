@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       
-      - uses: jidicula/clang-format-action@v4.14.0
+      - uses: jidicula/clang-format-action@v4.16.0
         with:
           clang-format-version: '21'
           check-path: '.'
@@ -39,9 +39,6 @@ jobs:
           python-version: '3.11'
       
       - uses: conan-io/setup-conan@v1
-      
-      - name: Setup Conan profile
-        run: conan profile detect
       
       - name: Cache Conan packages
         uses: actions/cache@v5
@@ -89,9 +86,6 @@ jobs:
           python-version: '3.11'
       
       - uses: conan-io/setup-conan@v1
-      
-      - name: Setup Conan profile
-        run: conan profile detect
       
       - name: Cache Conan packages
         uses: actions/cache@v5
