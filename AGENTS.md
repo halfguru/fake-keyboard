@@ -235,7 +235,7 @@ Tested with:
 **Enable verbose logging:**
 ```bash
 export SPDLOG_LEVEL=debug
-./bthid-keyboard --listen
+sudo ./build/fake-keyboard
 ```
 
 **Monitor Bluetooth:**
