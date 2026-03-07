@@ -17,6 +17,9 @@ jobs:
         with:
           version: 21
       
+      - name: Check clang-format version
+        run: clang-format --version
+      
       - name: Check formatting
         run: |
           find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
