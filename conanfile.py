@@ -16,7 +16,7 @@ class FakeKeyboardRecipe(ConanFile):
         self.test_requires("catch2/3.13.0")
         self.tool_requires("ninja/1.13.2")
         self.tool_requires("cmake/[>=3.25]")
-        self.tool_requires("pkgconf/2.4.3")
+        self.tool_requires("pkgconf/2.5.1")
 
     exports_sources = (
         "CMakeLists.txt",

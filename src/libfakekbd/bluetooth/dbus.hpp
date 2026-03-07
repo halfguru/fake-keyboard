@@ -8,6 +8,10 @@
 
 namespace fakekbd::bluetooth {
 
+// Bluetooth Device Class constants
+constexpr uint32_t DEVICE_CLASS_PERIPHERAL = 0x002540;
+constexpr uint32_t DEVICE_CLASS_KEYBOARD = 0x000540;
+
 class DBusProfileManager
 {
 public:
@@ -35,6 +39,8 @@ public:
 
   auto setAdapterDiscoverable(std::string const& adapter, bool enabled) -> hid::Result<void>;
   auto setAdapterPairable(std::string const& adapter, bool enabled) -> hid::Result<void>;
+  auto setAdapterName(std::string const& adapter, std::string const& name) -> hid::Result<void>;
+  auto setAdapterClass(std::string const& adapter, uint32_t device_class) -> hid::Result<void>;
   auto registerAgent() -> hid::Result<void>;
   auto unregisterAgent() -> void;
 

@@ -34,7 +34,6 @@ find_package(spdlog REQUIRED)
 find_package(nlohmann_json QUIET)
 
 add_library(fakekbd
-    src/libfakekbd/bluetooth/adapter.cpp
     src/libfakekbd/bluetooth/dbus.cpp
     src/libfakekbd/bluetooth/l2cap.cpp
     src/libfakekbd/bluetooth/sdp.cpp

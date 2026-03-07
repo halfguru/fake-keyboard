@@ -207,4 +207,39 @@ DBusProfileManager::unregisterAgent() -> void
   }
 }
 
+auto
+DBusProfileManager::setAdapterName(std::string const& adapter, std::string const& name) -> hid::Result<void>
+{
+  try {
+    auto adapterPath = "/org/bluez/" + adapter;
+    auto adapterProxy =
+      sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ adapterPath });
+
+    adapterProxy->setProperty("Alias").onInterface("org.bluez.Adapter1").toValue(name);
+
+    spdlog::info("Adapter {} name: {}", adapter.c_str(), name.c_str());
+    return {};
+  } catch (sdbus::Error const& e) {
+    spdlog::error("Failed to set Alias property: {}", e.what());
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+}
+
+auto
+DBusProfileManager::setAdapterClass(std::string const& adapter, uint32_t device_class) -> hid::Result<void>
+{
+  try {
+    auto adapterPath = "/org/bluez/" + adapter;
+    auto adapterProxy =
+      sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ adapterPath });
+
+    adapterProxy->setProperty("Class").onInterface("org.bluez.Adapter1").toValue(device_class);
+
+    spdlog::info("Adapter {} class: 0x{:06x}", adapter.c_str(), device_class);
+    return {};
+  } catch (sdbus::Error const& e) {
+    spdlog::error("Failed to set Class property: {}", e.what());
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+}
 }
