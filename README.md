@@ -5,15 +5,15 @@
 [![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg)](https://en.cppreference.com/w/cpp/23)
 [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-orange.svg)](https://www.linux.org/)
 
-Modern C++23 Bluetooth HID emulator for Linux. Turn your PC into a virtual keyboard, mouse, gamepad, or braille display.
+Modern C++23 Bluetooth HID emulator for Linux. Turn your PC into a virtual keyboard that can control phones, tablets, or other computers.
 
 ## What is this?
 
-`fake-keyboard` lets your Linux machine emulate Bluetooth HID devices. Connect to phones, tablets, or other computers and control them remotely.
+`fake-keyboard` lets your Linux machine emulate a Bluetooth HID keyboard. Type on your computer and have the keystrokes appear on your phone or tablet.
 
 ## Features
 
-- 🚧 Keyboard emulation
+- ✅ Keyboard emulation (Classic Bluetooth HID)
 - 🚧 Braille display support (planned)
 - Modern C++23 with clean API
 - Works with Android, Windows, macOS, Linux
@@ -33,7 +33,7 @@ btmgmt info | grep advertising
 
 ## Quick Start
 
-### Install Dependencies
+### 1. Install Dependencies
 
 ```bash
 # Arch Linux
@@ -45,76 +45,110 @@ sudo apt install bluez libbluetooth-dev clang cmake
 pip install conan
 ```
 
-### Build
+### 2. Disable BlueZ Input Plugin
+
+BlueZ's input plugin will intercept HID connections. Disable it:
+
+```bash
+# Check current bluetoothd status
+ps aux | grep bluetoothd
+
+# Edit the bluetooth service to add --noplugin=input
+sudo systemctl edit bluetoothd
+
+# Add these lines:
+[Service]
+ExecStart=
+ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=input
+
+# Restart bluetooth
+sudo systemctl restart bluetooth
+```
+
+Or simply run with the flag:
+```bash
+sudo systemctl stop bluetooth
+sudo /usr/lib/bluetooth/bluetoothd --noplugin=input &
+```
+
+### 3. Build
 
 ```bash
 # Install Conan dependencies
 conan install . --output-folder=build --build=missing
 
-# Configure and build using presets
+# Configure and build
 cmake --preset dev-release
 cmake --build --preset dev-release
-
-# Run
-./build/fake-keyboard
-
-# Run tests
-ctest --preset dev-release
 ```
 
-### Usage
+### 4. Run
 
 ```bash
-# Listen for connections
-./build/fake-keyboard --listen
-
-# Connect to specific device
-./build/fake-keyboard --connect 00:11:22:33:44:55
-
-# Type text
-./build/fake-keyboard --connect 00:11:22:33:44:55 --type "Hello World"
+sudo ./build/fake-keyboard
 ```
 
-## Pairing
-
-1. Make your device discoverable:
-   ```bash
-   bluetoothctl discoverable on
-   ```
-
-2. Pair from your phone/tablet/computer
-
-3. Trust the connection:
-   ```bash
-   bluetoothctl trust <device-mac>
-   ```
-
-## Configuration
-
-Create `~/.config/fake-keyboard/config.json`:
-
-```json
-{
-  "device": {
-    "name": "My Fake Keyboard",
-    "vendor_id": 0x1234,
-    "product_id": 0x5678
-  },
-  "bluetooth": {
-    "adapter": "hci0",
-    "auto_connect": ["00:11:22:33:44:55"]
-  }
-}
+You should see:
 ```
+[info] fake-keyboard v0.1.0
+[info] Starting L2CAP HID server on PSM 0x11 (control) and 0x13 (interrupt)...
+[info] L2CAP server listening
+[info] Keyboard server ready!
+```
+
+### 5. Make Adapter Discoverable
+
+In another terminal:
+
+```bash
+sudo bluetoothctl
+[bluetoothctl] agent on
+[bluetoothctl] default-agent
+[bluetoothctl] discoverable on
+[bluetoothctl] pairable on
+```
+
+### 6. Pair from Your Phone
+
+1. Open Bluetooth settings on your phone
+2. Scan for devices
+3. Find "Fake Keyboard" and tap to pair
+4. Accept pairing on both devices (may require PIN - try "0000")
+
+### 7. Enable Input Device
+
+On your phone:
+1. Go to Bluetooth settings → Paired devices
+2. Find "Fake Keyboard"
+3. Tap it and enable **"Input device"** (uncheck Media audio/Phone calls)
+
+### 8. Type!
+
+When connected, you'll see:
+```
+[info] Device connected on fd X
+[info] Type in this terminal to send keystrokes
+```
+
+Type in the fake-keyboard terminal - characters will appear on your phone!
+
+## Troubleshooting
+
+**"UUID already registered"** - Restart bluetooth: `sudo systemctl restart bluetooth`
+
+**"Address already in use"** - Kill existing process: `sudo pkill -9 fake-keyboard`
+
+**Phone connects for audio only** - Make sure to enable "Input device" and disable "Media audio" in your phone's Bluetooth settings
+
+**Device not discoverable** - Check: `sudo btmgmt info` should show `discoverable` in current settings
+
+**Device not found when scanning** - Make sure fake-keyboard is running and adapter is discoverable
 
 ## Development
 
 ### Build
 
 ```bash
-# Install Conan dependencies
-conan install . --output-folder=build --build=missing
-
 # Debug build
 cmake --preset dev-debug
 cmake --build --preset dev-debug
@@ -138,10 +172,21 @@ find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --W
 
 # Run static analysis
 run-clang-tidy -p build
+```
 
-# Run clang-tidy during build (automatic)
-cmake -S . -B build -DCMAKE_CXX_CLANG_TIDY=clang-tidy
-cmake --build build
+## Configuration
+
+Create `~/.config/fake-keyboard/config.json`:
+
+```json
+{
+  "device": {
+    "name": "My Fake Keyboard"
+  },
+  "bluetooth": {
+    "adapter": "hci0"
+  }
+}
 ```
 
 ## Limitations
@@ -149,6 +194,7 @@ cmake --build build
 - Classic Bluetooth only (no BLE HID yet)
 - Requires Bluetooth adapter with peripheral mode support
 - Linux only (BlueZ dependency)
+- Some Android phones may have issues with Classic HID
 
 ## Contributing
 
@@ -157,7 +203,6 @@ Contributions welcome! See [AGENTS.md](AGENTS.md) for development guidelines.
 ## License
 
 MIT
-```
 
 ## Resources
 
