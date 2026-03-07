@@ -10,7 +10,7 @@ jobs:
   format:
     name: Format Check
     runs-on: ubuntu-latest
-    container: silkeh/clang:17
+    container: silkeh/clang:21
     steps:
       - uses: actions/checkout@v6
       
