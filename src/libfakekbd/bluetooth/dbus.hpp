@@ -28,10 +28,13 @@ public:
                             new_connection_callback on_new_connection,
                             release_callback on_release) -> hid::Result<void>;
 
-  auto unregister_profile() -> void;
-  auto process_events() -> void;
+  auto unregisterProfile() -> void;
+  auto processEvents() -> void;
 
-  [[nodiscard]] auto is_registered() const -> bool;
+  [[nodiscard]] auto isRegistered() const -> bool;
+
+  auto setAdapterDiscoverable(std::string const& adapter, bool enabled) -> hid::Result<void>;
+  auto setAdapterPairable(std::string const& adapter, bool enabled) -> hid::Result<void>;
 
   struct impl;
 

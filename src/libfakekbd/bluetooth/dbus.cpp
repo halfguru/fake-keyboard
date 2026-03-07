@@ -125,7 +125,7 @@ dbus_profile_manager::dbus_profile_manager()
 
 dbus_profile_manager::~dbus_profile_manager()
 {
-  unregister_profile();
+  unregisterProfile();
 
   if (pimpl_->connection) {
     dbus_connection_unref(pimpl_->connection);
@@ -140,7 +140,7 @@ dbus_profile_manager::register_hid_profile(std::string const& adapter,
                                            release_callback on_rel) -> hid::Result<void>
 {
   if (pimpl_->registered) {
-    unregister_profile();
+    unregisterProfile();
   }
 
   std::string safe_name = name;
@@ -238,7 +238,7 @@ dbus_profile_manager::register_hid_profile(std::string const& adapter,
 }
 
 auto
-dbus_profile_manager::unregister_profile() -> void
+dbus_profile_manager::unregisterProfile() -> void
 {
   if (!pimpl_->registered || !pimpl_->connection) {
     return;
@@ -266,7 +266,7 @@ dbus_profile_manager::unregister_profile() -> void
 }
 
 auto
-dbus_profile_manager::process_events() -> void
+dbus_profile_manager::processEvents() -> void
 {
   if (pimpl_->connection) {
     while (dbus_connection_read_write_dispatch(pimpl_->connection, 0)) {
@@ -275,9 +275,99 @@ dbus_profile_manager::process_events() -> void
 }
 
 auto
-dbus_profile_manager::is_registered() const -> bool
+dbus_profile_manager::isRegistered() const -> bool
 {
   return pimpl_->registered;
+}
+
+auto
+dbus_profile_manager::setAdapterDiscoverable(std::string const& adapter, bool enabled) -> hid::Result<void>
+{
+  if (!pimpl_->connection) {
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+
+  std::string adapter_path = "/org/bluez/" + adapter;
+  char const* path = adapter_path.c_str();
+  char const* interface = "org.bluez.Adapter1";
+  char const* property = "Discoverable";
+  dbus_bool_t value = enabled ? TRUE : FALSE;
+
+  auto* msg = dbus_message_new_method_call("org.bluez", path, "org.freedesktop.DBus.Properties", "Set");
+  if (!msg) {
+    spdlog::error("Failed to create D-Bus message");
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+
+  DBusMessageIter iter;
+  dbus_message_iter_init_append(msg, &iter);
+  dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &interface);
+  dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &property);
+
+  DBusMessageIter variant_iter;
+  dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant_iter);
+  dbus_message_iter_append_basic(&variant_iter, DBUS_TYPE_BOOLEAN, &value);
+  dbus_message_iter_close_container(&iter, &variant_iter);
+
+  DBusError error;
+  dbus_error_init(&error);
+  auto* reply = dbus_connection_send_with_reply_and_block(pimpl_->connection, msg, -1, &error);
+  dbus_message_unref(msg);
+
+  if (!reply) {
+    spdlog::error("Failed to set Discoverable property: {}", error.message);
+    dbus_error_free(&error);
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+
+  dbus_message_unref(reply);
+  spdlog::info("Adapter {} discoverable: {}", adapter, enabled ? "on" : "off");
+  return {};
+}
+
+auto
+dbus_profile_manager::setAdapterPairable(std::string const& adapter, bool enabled) -> hid::Result<void>
+{
+  if (!pimpl_->connection) {
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+
+  std::string adapter_path = "/org/bluez/" + adapter;
+  char const* path = adapter_path.c_str();
+  char const* interface = "org.bluez.Adapter1";
+  char const* property = "Pairable";
+  dbus_bool_t value = enabled ? TRUE : FALSE;
+
+  auto* msg = dbus_message_new_method_call("org.bluez", path, "org.freedesktop.DBus.Properties", "Set");
+  if (!msg) {
+    spdlog::error("Failed to create D-Bus message");
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+
+  DBusMessageIter iter;
+  dbus_message_iter_init_append(msg, &iter);
+  dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &interface);
+  dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &property);
+
+  DBusMessageIter variant_iter;
+  dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant_iter);
+  dbus_message_iter_append_basic(&variant_iter, DBUS_TYPE_BOOLEAN, &value);
+  dbus_message_iter_close_container(&iter, &variant_iter);
+
+  DBusError error;
+  dbus_error_init(&error);
+  auto* reply = dbus_connection_send_with_reply_and_block(pimpl_->connection, msg, -1, &error);
+  dbus_message_unref(msg);
+
+  if (!reply) {
+    spdlog::error("Failed to set Pairable property: {}", error.message);
+    dbus_error_free(&error);
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+
+  dbus_message_unref(reply);
+  spdlog::info("Adapter {} pairable: {}", adapter, enabled ? "on" : "off");
+  return {};
 }
 
 }

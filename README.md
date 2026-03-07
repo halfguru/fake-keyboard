@@ -91,38 +91,35 @@ sudo ./build/fake-keyboard
 You should see:
 ```
 [info] fake-keyboard v0.1.0
+[info] Registering HID profile with BlueZ...
+[info] Registered HID profile with BlueZ
+[info] Making adapter discoverable and pairable...
+[info] Adapter hci0 discoverable: on
+[info] Adapter hci0 pairable: on
 [info] Starting L2CAP HID server on PSM 0x11 (control) and 0x13 (interrupt)...
 [info] L2CAP server listening
 [info] Keyboard server ready!
+[info] Pair from your phone and enable 'Input device' in Bluetooth settings
+[info] Press Ctrl+C to exit
 ```
 
-### 5. Make Adapter Discoverable
+The adapter is automatically made discoverable and pairable via BlueZ D-Bus API.
 
-In another terminal:
-
-```bash
-sudo bluetoothctl
-[bluetoothctl] agent on
-[bluetoothctl] default-agent
-[bluetoothctl] discoverable on
-[bluetoothctl] pairable on
-```
-
-### 6. Pair from Your Phone
+### 5. Pair from Your Phone
 
 1. Open Bluetooth settings on your phone
 2. Scan for devices
 3. Find "Fake Keyboard" and tap to pair
 4. Accept pairing on both devices (may require PIN - try "0000")
 
-### 7. Enable Input Device
+### 6. Enable Input Device
 
 On your phone:
 1. Go to Bluetooth settings → Paired devices
 2. Find "Fake Keyboard"
 3. Tap it and enable **"Input device"** (uncheck Media audio/Phone calls)
 
-### 8. Type!
+### 7. Type!
 
 When connected, you'll see:
 ```

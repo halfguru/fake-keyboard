@@ -101,6 +101,15 @@ main() -> int
     return 1;
   }
 
+  spdlog::info("Making adapter discoverable and pairable...");
+  if (auto result = dbus_mgr.setAdapterDiscoverable(adapter, true); !result) {
+    spdlog::warn("Failed to make adapter discoverable (you may need to run: sudo bluetoothctl discoverable on)");
+  }
+
+  if (auto result = dbus_mgr.setAdapterPairable(adapter, true); !result) {
+    spdlog::warn("Failed to make adapter pairable (you may need to run: sudo bluetoothctl pairable on)");
+  }
+
   spdlog::info("Starting L2CAP HID server on PSM 0x11 (control) and 0x13 (interrupt)...");
   if (auto result = kbd.listen(adapter); !result) {
     spdlog::error("Failed to start L2CAP server");
@@ -115,7 +124,7 @@ main() -> int
 
   char c;
   while (running) {
-    dbus_mgr.process_events();
+    dbus_mgr.processEvents();
 
     if (kbd.is_connected()) {
       ssize_t n = read(STDIN_FILENO, &c, 1);
