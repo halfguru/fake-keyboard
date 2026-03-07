@@ -13,16 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       
-      - uses: egor-tensin/setup-clang@v1
+      - uses: jidicula/clang-format-action@v4.14.0
         with:
-          version: 21
-      
-      - name: Check clang-format version
-        run: clang-format --version
-      
-      - name: Check formatting
-        run: |
-          find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+          clang-format-version: '21'
+          check-path: '.'
 
   tidy:
     name: Clang-Tidy
