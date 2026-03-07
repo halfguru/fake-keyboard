@@ -1,6 +1,8 @@
 #include "dbus.hpp"
 #include <algorithm>
+// NOLINTBEGIN
 #include <dbus/dbus.h>
+// NOLINTEND
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <unistd.h>
