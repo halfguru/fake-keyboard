@@ -82,18 +82,18 @@ main() -> int
   fakekbd::keyboard kbd;
 
   spdlog::info("Registering HID profile with BlueZ...");
-  fakekbd::bluetooth::dbus_profile_manager dbus_mgr;
+  fakekbd::bluetooth::DBusProfileManager dbusMgr;
 
   auto sdp_record = fakekbd::bluetooth::build_keyboard_sdp_record(device_name);
 
-  if (auto result = dbus_mgr.register_hid_profile(
+  if (auto result = dbusMgr.registerHidProfile(
         adapter,
         device_name,
         sdp_record,
         [&](bdaddr_t const& device, int fd) {
-          char addr_str[18] = { 0 };
-          ba2str(&device, addr_str);
-          spdlog::info("Device connected: {} on fd {}", addr_str, fd);
+          char addrStr[18] = { 0 };
+          ba2str(&device, addrStr);
+          spdlog::info("Device connected: {} on fd {}", addrStr, fd);
         },
         []() { spdlog::info("Device disconnected"); });
       !result) {
@@ -102,12 +102,16 @@ main() -> int
   }
 
   spdlog::info("Making adapter discoverable and pairable...");
-  if (auto result = dbus_mgr.setAdapterDiscoverable(adapter, true); !result) {
+  if (auto result = dbusMgr.setAdapterDiscoverable(adapter, true); !result) {
     spdlog::warn("Failed to make adapter discoverable (you may need to run: sudo bluetoothctl discoverable on)");
   }
 
-  if (auto result = dbus_mgr.setAdapterPairable(adapter, true); !result) {
+  if (auto result = dbusMgr.setAdapterPairable(adapter, true); !result) {
     spdlog::warn("Failed to make adapter pairable (you may need to run: sudo bluetoothctl pairable on)");
+  }
+
+  if (auto result = dbusMgr.registerAgent(); !result) {
+    spdlog::warn("Failed to register pairing agent (you may need to run: sudo bluetoothctl agent on)");
   }
 
   spdlog::info("Starting L2CAP HID server on PSM 0x11 (control) and 0x13 (interrupt)...");
@@ -124,7 +128,7 @@ main() -> int
 
   char c;
   while (running) {
-    dbus_mgr.processEvents();
+    dbusMgr.processEvents();
 
     if (kbd.is_connected()) {
       ssize_t n = read(STDIN_FILENO, &c, 1);

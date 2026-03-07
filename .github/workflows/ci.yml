@@ -16,7 +16,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build pkg-config libbluetooth-dev libsdbus-c++-dev
+          sudo apt-get install -y libbluetooth-dev libsdbus-c++-dev
       
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
