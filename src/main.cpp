@@ -119,10 +119,6 @@ main() -> int
     spdlog::warn("Failed to set adapter name");
   }
 
-  if (auto result = dbusMgr.setAdapterClass(adapter, fakekbd::bluetooth::DEVICE_CLASS_KEYBOARD); !result) {
-    spdlog::warn("Failed to set adapter class");
-  }
-
   spdlog::info("Starting L2CAP HID server on PSM 0x11 (control) and 0x13 (interrupt)...");
   if (auto result = kbd.listen(adapter); !result) {
     spdlog::error("Failed to start L2CAP server");
