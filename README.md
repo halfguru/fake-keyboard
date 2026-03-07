@@ -37,11 +37,11 @@ btmgmt info | grep advertising
 
 ```bash
 # Arch Linux
-sudo pacman -S bluez bluez-utils clang cmake
+sudo pacman -S bluez bluez-utils clang sdbus-cpp
 pip install conan
 
 # Ubuntu/Debian
-sudo apt install bluez libbluetooth-dev clang cmake
+sudo apt install bluez libbluetooth-dev clang libsdbus-c++-dev
 pip install conan
 ```
 

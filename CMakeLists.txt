@@ -26,7 +26,7 @@ endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(BLUEZ REQUIRED bluez)
-pkg_check_modules(DBUS REQUIRED dbus-1)
+pkg_check_modules(SDBUS REQUIRED sdbus-c++)
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/build/Release/generators")
 
@@ -34,7 +34,6 @@ find_package(spdlog REQUIRED)
 find_package(nlohmann_json QUIET)
 
 add_library(fakekbd
-    src/libfakekbd/bluetooth/adapter.cpp
     src/libfakekbd/bluetooth/dbus.cpp
     src/libfakekbd/bluetooth/l2cap.cpp
     src/libfakekbd/bluetooth/sdp.cpp
@@ -49,7 +48,7 @@ target_include_directories(fakekbd
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${BLUEZ_INCLUDE_DIRS}
-        ${DBUS_INCLUDE_DIRS}
+        ${SDBUS_INCLUDE_DIRS}
 )
 
 target_link_libraries(fakekbd
@@ -57,7 +56,7 @@ target_link_libraries(fakekbd
         spdlog::spdlog
     PRIVATE
         ${BLUEZ_LIBRARIES}
-        ${DBUS_LIBRARIES}
+        ${SDBUS_LIBRARIES}
 )
 
 if(nlohmann_json_FOUND)
