@@ -29,9 +29,12 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y cmake ninja-build pkg-config libbluetooth-dev ccache python3 python3-pip
-          ln -sf /usr/bin/python3 /usr/bin/python
+          apt-get install -y cmake ninja-build pkg-config libbluetooth-dev ccache
           echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
+      
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
       
       - uses: conan-io/setup-conan@v1
       
@@ -74,9 +77,12 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y cmake ninja-build pkg-config libbluetooth-dev ccache python3 python3-pip
-          ln -sf /usr/bin/python3 /usr/bin/python
+          apt-get install -y cmake ninja-build pkg-config libbluetooth-dev ccache
           echo "CCACHE_DIR=${{ github.workspace }}/.ccache" >> $GITHUB_ENV
+      
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
       
       - uses: conan-io/setup-conan@v1
       
