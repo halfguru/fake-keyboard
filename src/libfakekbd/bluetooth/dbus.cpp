@@ -10,6 +10,7 @@ struct DBusProfileManager::Impl
 {
   std::unique_ptr<sdbus::IConnection> connection;
   std::unique_ptr<sdbus::IObject> profileObject;
+  std::unique_ptr<sdbus::IObject> agentObject;
   std::string objectPath;
   bool registered = false;
 
@@ -170,44 +171,6 @@ DBusProfileManager::setAdapterPairable(std::string const& adapter, bool enabled)
 }
 
 auto
-DBusProfileManager::registerAgent() -> hid::Result<void>
-{
-  try {
-    auto agentManager =
-      sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ "/org/bluez" });
-
-    agentManager->callMethod("RegisterAgent")
-      .onInterface("org.bluez.AgentManager1")
-      .withArguments(sdbus::ObjectPath{ "/org/bluez/agent" }, "NoInputNoOutput");
-
-    agentManager->callMethod("RequestDefaultAgent")
-      .onInterface("org.bluez.AgentManager1")
-      .withArguments(sdbus::ObjectPath{ "/org/bluez/agent" });
-
-    spdlog::info("Registered pairing agent");
-    return {};
-  } catch (sdbus::Error const& e) {
-    spdlog::error("Failed to register agent: {}", e.what());
-    return std::unexpected(hid::error::InvalidConfiguration);
-  }
-}
-
-auto
-DBusProfileManager::unregisterAgent() -> void
-{
-  try {
-    auto agentManager =
-      sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ "/org/bluez" });
-
-    agentManager->callMethod("UnregisterAgent")
-      .onInterface("org.bluez.AgentManager1")
-      .withArguments(sdbus::ObjectPath{ "/org/bluez/agent" });
-  } catch (sdbus::Error const& /*e*/) {
-    // Ignore errors during unregister
-  }
-}
-
-auto
 DBusProfileManager::setAdapterName(std::string const& adapter, std::string const& name) -> hid::Result<void>
 {
   try {
@@ -242,4 +205,52 @@ DBusProfileManager::setAdapterClass(std::string const& adapter, uint32_t device_
     return std::unexpected(hid::error::InvalidConfiguration);
   }
 }
+
+auto
+DBusProfileManager::registerAgent() -> hid::Result<void>
+{
+  try {
+    pimpl_->agentObject = sdbus::createObject(*pimpl_->connection, sdbus::ObjectPath{ "/org/bluez/agent" });
+
+    pimpl_->agentObject
+      ->addVTable(sdbus::registerMethod("Release").implementedAs([]() {}),
+                  sdbus::registerMethod("Cancel").implementedAs([]() {}))
+      .forInterface("org.bluez.Agent1");
+
+    auto agentManager =
+      sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ "/org/bluez" });
+
+    agentManager->callMethod("RegisterAgent")
+      .onInterface("org.bluez.AgentManager1")
+      .withArguments(sdbus::ObjectPath{ "/org/bluez/agent" }, "NoInputNoOutput");
+
+    agentManager->callMethod("RequestDefaultAgent")
+      .onInterface("org.bluez.AgentManager1")
+      .withArguments(sdbus::ObjectPath{ "/org/bluez/agent" });
+
+    spdlog::info("Registered pairing agent");
+    return {};
+  } catch (sdbus::Error const& e) {
+    spdlog::error("Failed to register agent: {}", e.what());
+    return std::unexpected(hid::error::InvalidConfiguration);
+  }
+}
+
+auto
+DBusProfileManager::unregisterAgent() -> void
+{
+  try {
+    auto agentManager =
+      sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ "/org/bluez" });
+
+    agentManager->callMethod("UnregisterAgent")
+      .onInterface("org.bluez.AgentManager1")
+      .withArguments(sdbus::ObjectPath{ "/org/bluez/agent" });
+
+    pimpl_->agentObject.reset();
+  } catch (sdbus::Error const& /*e*/) {
+    // Ignore errors during unregister
+  }
+}
+
 }
