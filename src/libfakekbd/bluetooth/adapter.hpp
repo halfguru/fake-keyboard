@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hid/types.hpp"
+#include "libfakekbd/hid/types.hpp"
 #include <string>
 
 namespace fakekbd::bluetooth {

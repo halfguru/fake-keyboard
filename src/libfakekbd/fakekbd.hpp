@@ -1,9 +1,9 @@
 #pragma once
 
-#include "config.hpp"
-#include "hid/keyboard.hpp"
-#include "hid/report.hpp"
-#include "hid/types.hpp"
+#include "libfakekbd/config.hpp"
+#include "libfakekbd/hid/keyboard.hpp"
+#include "libfakekbd/hid/report.hpp"
+#include "libfakekbd/hid/types.hpp"
 
 namespace fakekbd {
 

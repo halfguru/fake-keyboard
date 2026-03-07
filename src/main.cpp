@@ -1,10 +1,9 @@
-#include <bluetooth/dbus.hpp>
-#include <bluetooth/sdp.hpp>
 #include <csignal>
-#include <cstring>
-#include <fakekbd.hpp>
 #include <fcntl.h>
 #include <filesystem>
+#include <libfakekbd/bluetooth/dbus.hpp>
+#include <libfakekbd/bluetooth/sdp.hpp>
+#include <libfakekbd/fakekbd.hpp>
 #include <spdlog/spdlog.h>
 #include <termios.h>
 #include <unistd.h>

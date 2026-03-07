@@ -26,6 +26,7 @@ endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(BLUEZ REQUIRED bluez)
+pkg_check_modules(DBUS REQUIRED dbus-1)
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/build/Release/generators")
 
@@ -48,6 +49,7 @@ target_include_directories(fakekbd
         $<INSTALL_INTERFACE:include>
     PRIVATE
         ${BLUEZ_INCLUDE_DIRS}
+        ${DBUS_INCLUDE_DIRS}
 )
 
 target_link_libraries(fakekbd
@@ -55,6 +57,7 @@ target_link_libraries(fakekbd
         spdlog::spdlog
     PRIVATE
         ${BLUEZ_LIBRARIES}
+        ${DBUS_LIBRARIES}
 )
 
 if(nlohmann_json_FOUND)

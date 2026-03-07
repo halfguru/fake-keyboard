@@ -1,4 +1,4 @@
-#include "config.hpp"
+#include "libfakekbd/config.hpp"
 #include <fstream>
 #include <spdlog/spdlog.h>
 

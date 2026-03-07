@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bluetooth/l2cap.hpp"
-#include "hid/types.hpp"
+#include "libfakekbd/bluetooth/l2cap.hpp"
+#include "libfakekbd/hid/types.hpp"
 #include <atomic>
 #include <bluetooth/bluetooth.h>
 #include <memory>

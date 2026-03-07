@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hid/report.hpp"
+#include "libfakekbd/hid/report.hpp"
 #include <string>
 #include <vector>
 

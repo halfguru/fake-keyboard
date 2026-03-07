@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hid/types.hpp"
+#include "libfakekbd/hid/types.hpp"
 #include <bluetooth/bluetooth.h>
 #include <functional>
 #include <memory>

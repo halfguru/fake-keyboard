@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include <hid/report.hpp>
+#include <libfakekbd/hid/report.hpp>
 
 using namespace fakekbd::hid;
 
