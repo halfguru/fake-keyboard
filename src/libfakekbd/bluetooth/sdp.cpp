@@ -4,45 +4,40 @@
 #include <spdlog/spdlog.h>
 #include <sstream>
 
-namespace fakekbd::bluetooth {
+namespace fakekbd::bluetooth
+{
 
-auto
-sdp_record::set_device_name(std::string_view name) -> sdp_record&
+auto sdp_record::set_device_name(std::string_view name) -> sdp_record&
 {
   device_name_ = std::string(name);
   return *this;
 }
 
-auto
-sdp_record::set_vendor_id(uint16_t id) -> sdp_record&
+auto sdp_record::set_vendor_id(uint16_t id) -> sdp_record&
 {
   vendor_id_ = id;
   return *this;
 }
 
-auto
-sdp_record::set_product_id(uint16_t id) -> sdp_record&
+auto sdp_record::set_product_id(uint16_t id) -> sdp_record&
 {
   product_id_ = id;
   return *this;
 }
 
-auto
-sdp_record::set_version(uint16_t version) -> sdp_record&
+auto sdp_record::set_version(uint16_t version) -> sdp_record&
 {
   version_ = version;
   return *this;
 }
 
-auto
-sdp_record::set_report_descriptor(std::vector<uint8_t> const& descriptor) -> sdp_record&
+auto sdp_record::set_report_descriptor(std::vector<uint8_t> const& descriptor) -> sdp_record&
 {
   report_descriptor_ = descriptor;
   return *this;
 }
 
-auto
-sdp_record::build_xml() const -> std::string
+auto sdp_record::build_xml() const -> std::string
 {
   std::ostringstream xml;
 
@@ -140,14 +135,16 @@ sdp_record::build_xml() const -> std::string
   xml << "    <boolean value=\"true\" />\n";
   xml << "  </attribute>\n";
 
-  if (!report_descriptor_.empty()) {
+  if (!report_descriptor_.empty())
+  {
     xml << "  <attribute id=\"0x0206\">\n";
     xml << "    <sequence>\n";
     xml << "      <sequence>\n";
     xml << "        <uint8 value=\"0x22\" />\n";
     xml << "        <text encoding=\"hex\" value=\"";
 
-    for (auto byte : report_descriptor_) {
+    for (auto byte : report_descriptor_)
+    {
       xml << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
     }
 
@@ -195,12 +192,11 @@ sdp_record::build_xml() const -> std::string
   return xml.str();
 }
 
-auto
-build_hid_sdp_record(std::string_view device_name,
-                     uint16_t vendor_id,
-                     uint16_t product_id,
-                     uint16_t version,
-                     std::vector<uint8_t> const& report_descriptor) -> std::string
+auto build_hid_sdp_record(std::string_view device_name,
+                          uint16_t vendor_id,
+                          uint16_t product_id,
+                          uint16_t version,
+                          std::vector<uint8_t> const& report_descriptor) -> std::string
 {
   return sdp_record{}
     .set_device_name(device_name)
@@ -211,8 +207,7 @@ build_hid_sdp_record(std::string_view device_name,
     .build_xml();
 }
 
-auto
-build_keyboard_sdp_record(std::string_view device_name) -> std::string
+auto build_keyboard_sdp_record(std::string_view device_name) -> std::string
 {
   auto report_descriptor = hid::build_keyboard_report_descriptor();
 

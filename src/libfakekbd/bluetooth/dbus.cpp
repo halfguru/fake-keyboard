@@ -4,18 +4,19 @@
 #include <spdlog/spdlog.h>
 #include <unistd.h>
 
-namespace fakekbd::bluetooth {
+namespace fakekbd::bluetooth
+{
 
 struct DBusProfileManager::Impl
 {
-  std::unique_ptr<sdbus::IConnection> connection;
-  std::unique_ptr<sdbus::IObject> profileObject;
-  std::unique_ptr<sdbus::IObject> agentObject;
-  std::string objectPath;
-  bool registered = false;
+    std::unique_ptr<sdbus::IConnection> connection;
+    std::unique_ptr<sdbus::IObject> profileObject;
+    std::unique_ptr<sdbus::IObject> agentObject;
+    std::string objectPath;
+    bool registered = false;
 
-  NewConnectionCallback onNewConnection;
-  ReleaseCallback onRelease;
+    NewConnectionCallback onNewConnection;
+    ReleaseCallback onRelease;
 };
 
 DBusProfileManager::DBusProfileManager()
@@ -30,14 +31,14 @@ DBusProfileManager::~DBusProfileManager()
   unregisterAgent();
 }
 
-auto
-DBusProfileManager::registerHidProfile(std::string const& adapter,
-                                       std::string const& name,
-                                       std::string const& sdpRecord,
-                                       NewConnectionCallback onNewConnection,
-                                       ReleaseCallback onRelease) -> hid::Result<void>
+auto DBusProfileManager::registerHidProfile(std::string const& adapter,
+                                            std::string const& name,
+                                            std::string const& sdpRecord,
+                                            NewConnectionCallback onNewConnection,
+                                            ReleaseCallback onRelease) -> hid::Result<void>
 {
-  if (pimpl_->registered) {
+  if (pimpl_->registered)
+  {
     unregisterProfile();
   }
 
@@ -47,7 +48,8 @@ DBusProfileManager::registerHidProfile(std::string const& adapter,
   pimpl_->onNewConnection = std::move(onNewConnection);
   pimpl_->onRelease = std::move(onRelease);
 
-  try {
+  try
+  {
     pimpl_->profileObject = sdbus::createObject(*pimpl_->connection, sdbus::ObjectPath{ pimpl_->objectPath });
 
     pimpl_->profileObject
@@ -56,7 +58,8 @@ DBusProfileManager::registerHidProfile(std::string const& adapter,
           .implementedAs([this](std::string device, sdbus::UnixFd fd, std::map<std::string, sdbus::Variant> /*props*/) {
             spdlog::info("NewConnection called for device: {}", device.c_str());
 
-            if (pimpl_->onNewConnection) {
+            if (pimpl_->onNewConnection)
+            {
               bdaddr_t bdaddr = {};
               str2ba(device.c_str(), &bdaddr);
               pimpl_->onNewConnection(bdaddr, fd.get());
@@ -64,13 +67,15 @@ DBusProfileManager::registerHidProfile(std::string const& adapter,
           }),
         sdbus::registerMethod("Release").implementedAs([this]() {
           spdlog::info("Release called");
-          if (pimpl_->onRelease) {
+          if (pimpl_->onRelease)
+          {
             pimpl_->onRelease();
           }
         }),
         sdbus::registerMethod("RequestDisconnection").implementedAs([this](std::string device) {
           spdlog::info("RequestDisconnection for device: {}", device.c_str());
-          if (pimpl_->onRelease) {
+          if (pimpl_->onRelease)
+          {
             pimpl_->onRelease();
           }
         }))
@@ -90,20 +95,23 @@ DBusProfileManager::registerHidProfile(std::string const& adapter,
     pimpl_->registered = true;
     spdlog::info("Registered HID profile with BlueZ");
     return {};
-  } catch (sdbus::Error const& e) {
+  }
+  catch (sdbus::Error const& e)
+  {
     spdlog::error("Failed to register HID profile: {}", e.what());
     return std::unexpected(hid::error::InvalidConfiguration);
   }
 }
 
-auto
-DBusProfileManager::unregisterProfile() -> void
+auto DBusProfileManager::unregisterProfile() -> void
 {
-  if (!pimpl_->registered || !pimpl_->connection) {
+  if (!pimpl_->registered || !pimpl_->connection)
+  {
     return;
   }
 
-  try {
+  try
+  {
     auto profileManager =
       sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ "/org/bluez" });
 
@@ -114,30 +122,32 @@ DBusProfileManager::unregisterProfile() -> void
     pimpl_->profileObject.reset();
     pimpl_->registered = false;
     spdlog::info("Unregistered HID profile");
-  } catch (sdbus::Error const& e) {
+  }
+  catch (sdbus::Error const& e)
+  {
     spdlog::error("Failed to unregister profile: {}", e.what());
   }
 }
 
-auto
-DBusProfileManager::processEvents() -> void
+auto DBusProfileManager::processEvents() -> void
 {
-  if (pimpl_->connection) {
-    while (pimpl_->connection->processPendingEvent()) {
+  if (pimpl_->connection)
+  {
+    while (pimpl_->connection->processPendingEvent())
+    {
     }
   }
 }
 
-auto
-DBusProfileManager::isRegistered() const -> bool
+auto DBusProfileManager::isRegistered() const -> bool
 {
   return pimpl_->registered;
 }
 
-auto
-DBusProfileManager::setAdapterDiscoverable(std::string const& adapter, bool enabled) -> hid::Result<void>
+auto DBusProfileManager::setAdapterDiscoverable(std::string const& adapter, bool enabled) -> hid::Result<void>
 {
-  try {
+  try
+  {
     auto adapterPath = "/org/bluez/" + adapter;
     auto adapterProxy =
       sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ adapterPath });
@@ -146,16 +156,18 @@ DBusProfileManager::setAdapterDiscoverable(std::string const& adapter, bool enab
 
     spdlog::info("Adapter {} discoverable: {}", adapter.c_str(), enabled ? "on" : "off");
     return {};
-  } catch (sdbus::Error const& e) {
+  }
+  catch (sdbus::Error const& e)
+  {
     spdlog::error("Failed to set Discoverable property: {}", e.what());
     return std::unexpected(hid::error::InvalidConfiguration);
   }
 }
 
-auto
-DBusProfileManager::setAdapterPairable(std::string const& adapter, bool enabled) -> hid::Result<void>
+auto DBusProfileManager::setAdapterPairable(std::string const& adapter, bool enabled) -> hid::Result<void>
 {
-  try {
+  try
+  {
     auto adapterPath = "/org/bluez/" + adapter;
     auto adapterProxy =
       sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ adapterPath });
@@ -164,16 +176,18 @@ DBusProfileManager::setAdapterPairable(std::string const& adapter, bool enabled)
 
     spdlog::info("Adapter {} pairable: {}", adapter.c_str(), enabled ? "on" : "off");
     return {};
-  } catch (sdbus::Error const& e) {
+  }
+  catch (sdbus::Error const& e)
+  {
     spdlog::error("Failed to set Pairable property: {}", e.what());
     return std::unexpected(hid::error::InvalidConfiguration);
   }
 }
 
-auto
-DBusProfileManager::setAdapterName(std::string const& adapter, std::string const& name) -> hid::Result<void>
+auto DBusProfileManager::setAdapterName(std::string const& adapter, std::string const& name) -> hid::Result<void>
 {
-  try {
+  try
+  {
     auto adapterPath = "/org/bluez/" + adapter;
     auto adapterProxy =
       sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ adapterPath });
@@ -182,16 +196,18 @@ DBusProfileManager::setAdapterName(std::string const& adapter, std::string const
 
     spdlog::info("Adapter {} name: {}", adapter.c_str(), name.c_str());
     return {};
-  } catch (sdbus::Error const& e) {
+  }
+  catch (sdbus::Error const& e)
+  {
     spdlog::error("Failed to set Alias property: {}", e.what());
     return std::unexpected(hid::error::InvalidConfiguration);
   }
 }
 
-auto
-DBusProfileManager::setAdapterClass(std::string const& adapter, uint32_t device_class) -> hid::Result<void>
+auto DBusProfileManager::setAdapterClass(std::string const& adapter, uint32_t device_class) -> hid::Result<void>
 {
-  try {
+  try
+  {
     auto adapterPath = "/org/bluez/" + adapter;
     auto adapterProxy =
       sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ adapterPath });
@@ -200,16 +216,18 @@ DBusProfileManager::setAdapterClass(std::string const& adapter, uint32_t device_
 
     spdlog::info("Adapter {} class: 0x{:06x}", adapter.c_str(), device_class);
     return {};
-  } catch (sdbus::Error const& e) {
+  }
+  catch (sdbus::Error const& e)
+  {
     spdlog::error("Failed to set Class property: {}", e.what());
     return std::unexpected(hid::error::InvalidConfiguration);
   }
 }
 
-auto
-DBusProfileManager::registerAgent() -> hid::Result<void>
+auto DBusProfileManager::registerAgent() -> hid::Result<void>
 {
-  try {
+  try
+  {
     pimpl_->agentObject = sdbus::createObject(*pimpl_->connection, sdbus::ObjectPath{ "/org/bluez/agent" });
 
     pimpl_->agentObject
@@ -230,16 +248,18 @@ DBusProfileManager::registerAgent() -> hid::Result<void>
 
     spdlog::info("Registered pairing agent");
     return {};
-  } catch (sdbus::Error const& e) {
+  }
+  catch (sdbus::Error const& e)
+  {
     spdlog::error("Failed to register agent: {}", e.what());
     return std::unexpected(hid::error::InvalidConfiguration);
   }
 }
 
-auto
-DBusProfileManager::unregisterAgent() -> void
+auto DBusProfileManager::unregisterAgent() -> void
 {
-  try {
+  try
+  {
     auto agentManager =
       sdbus::createProxy(*pimpl_->connection, sdbus::ServiceName{ "org.bluez" }, sdbus::ObjectPath{ "/org/bluez" });
 
@@ -248,7 +268,9 @@ DBusProfileManager::unregisterAgent() -> void
       .withArguments(sdbus::ObjectPath{ "/org/bluez/agent" });
 
     pimpl_->agentObject.reset();
-  } catch (sdbus::Error const& e) {
+  }
+  catch (sdbus::Error const& e)
+  {
     spdlog::debug("Ignoring error during agent unregister: {}", e.what());
   }
 }

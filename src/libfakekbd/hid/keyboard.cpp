@@ -4,29 +4,26 @@
 #include <cstring>
 #include <spdlog/spdlog.h>
 
-namespace fakekbd::hid {
+namespace fakekbd::hid
+{
 
 device::device()
   : state_(connection_state::Disconnected)
-{
-}
+{}
 
 device::~device() = default;
 
-auto
-device::state() const -> connection_state
+auto device::state() const -> connection_state
 {
   return state_.load();
 }
 
-auto
-device::is_connected() const -> bool
+auto device::is_connected() const -> bool
 {
   return state_.load() == connection_state::Connected;
 }
 
-void
-device::set_state(connection_state new_state)
+void device::set_state(connection_state new_state)
 {
   state_.store(new_state);
 }
@@ -36,29 +33,30 @@ keyboard::keyboard()
   , control_fd_(-1)
   , interrupt_fd_(-1)
   , running_(false)
-{
-}
+{}
 
 keyboard::~keyboard()
 {
   disconnect();
 }
 
-auto
-keyboard::listen(std::string const& adapter) -> Result<void>
+auto keyboard::listen(std::string const& adapter) -> Result<void>
 {
   auto addr_result = bluetooth::get_adapter_address(adapter);
-  if (!addr_result) {
+  if (!addr_result)
+  {
     return std::unexpected(addr_result.error());
   }
 
   auto addr = addr_result.value();
 
-  if (auto result = control_server_.listen(addr, L2CAP_PSM_CONTROL); !result) {
+  if (auto result = control_server_.listen(addr, L2CAP_PSM_CONTROL); !result)
+  {
     return std::unexpected(result.error());
   }
 
-  if (auto result = interrupt_server_.listen(addr, L2CAP_PSM_INTERRUPT); !result) {
+  if (auto result = interrupt_server_.listen(addr, L2CAP_PSM_INTERRUPT); !result)
+  {
     return std::unexpected(result.error());
   }
 
@@ -68,17 +66,21 @@ keyboard::listen(std::string const& adapter) -> Result<void>
 
   running_ = true;
   accept_thread_ = std::thread([this] {
-    while (running_) {
+    while (running_)
+    {
       auto control_result = control_server_.accept();
-      if (!control_result) {
-        if (running_) {
+      if (!control_result)
+      {
+        if (running_)
+        {
           spdlog::error("Failed to accept control connection");
         }
         continue;
       }
 
       auto interrupt_result = interrupt_server_.accept();
-      if (!interrupt_result) {
+      if (!interrupt_result)
+      {
         spdlog::error("Failed to accept interrupt connection");
         close(control_result->first);
         continue;
@@ -98,15 +100,15 @@ keyboard::listen(std::string const& adapter) -> Result<void>
   return {};
 }
 
-auto
-keyboard::connect(bdaddr_t const& client_addr) -> Result<void>
+auto keyboard::connect(bdaddr_t const& client_addr) -> Result<void>
 {
   std::lock_guard lock(connection_mutex_);
 
   set_state(connection_state::Connecting);
 
   auto adapter_addr = bluetooth::get_adapter_address("hci0");
-  if (!adapter_addr) {
+  if (!adapter_addr)
+  {
     set_state(connection_state::Disconnected);
     return std::unexpected(adapter_addr.error());
   }
@@ -114,12 +116,14 @@ keyboard::connect(bdaddr_t const& client_addr) -> Result<void>
   control_client_ = std::make_unique<bluetooth::l2cap_client>();
   interrupt_client_ = std::make_unique<bluetooth::l2cap_client>();
 
-  if (auto result = control_client_->connect(*adapter_addr, client_addr, L2CAP_PSM_CONTROL); !result) {
+  if (auto result = control_client_->connect(*adapter_addr, client_addr, L2CAP_PSM_CONTROL); !result)
+  {
     set_state(connection_state::Disconnected);
     return std::unexpected(result.error());
   }
 
-  if (auto result = interrupt_client_->connect(*adapter_addr, client_addr, L2CAP_PSM_INTERRUPT); !result) {
+  if (auto result = interrupt_client_->connect(*adapter_addr, client_addr, L2CAP_PSM_INTERRUPT); !result)
+  {
     set_state(connection_state::Disconnected);
     control_client_.reset();
     return std::unexpected(result.error());
@@ -137,21 +141,23 @@ keyboard::connect(bdaddr_t const& client_addr) -> Result<void>
   return {};
 }
 
-auto
-keyboard::disconnect() -> void
+auto keyboard::disconnect() -> void
 {
   running_ = false;
 
-  if (accept_thread_.joinable()) {
+  if (accept_thread_.joinable())
+  {
     accept_thread_.join();
   }
 
-  if (control_fd_ >= 0) {
+  if (control_fd_ >= 0)
+  {
     close(control_fd_);
     control_fd_ = -1;
   }
 
-  if (interrupt_fd_ >= 0) {
+  if (interrupt_fd_ >= 0)
+  {
     close(interrupt_fd_);
     interrupt_fd_ = -1;
   }
@@ -163,10 +169,10 @@ keyboard::disconnect() -> void
   spdlog::info("Disconnected");
 }
 
-auto
-keyboard::send_key(uint8_t key_code, bool pressed, uint8_t modifiers) -> Result<void>
+auto keyboard::send_key(uint8_t key_code, bool pressed, uint8_t modifiers) -> Result<void>
 {
-  if (!is_connected()) {
+  if (!is_connected())
+  {
     return std::unexpected(error::NotConnected);
   }
 
@@ -175,24 +181,27 @@ keyboard::send_key(uint8_t key_code, bool pressed, uint8_t modifiers) -> Result<
   return bluetooth::send_hid_report(interrupt_fd_, &report, sizeof(report));
 }
 
-auto
-keyboard::send_text(std::string_view text) -> Result<void>
+auto keyboard::send_text(std::string_view text) -> Result<void>
 {
-  if (!is_connected()) {
+  if (!is_connected())
+  {
     return std::unexpected(error::NotConnected);
   }
 
-  for (char c : text) {
+  for (char c : text)
+  {
     uint8_t modifiers = modifiers_from_char(c);
     uint8_t key = key_from_char(c);
 
-    if (auto result = send_key(key, true, modifiers); !result) {
+    if (auto result = send_key(key, true, modifiers); !result)
+    {
       return result;
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-    if (auto result = send_key(0, false, 0); !result) {
+    if (auto result = send_key(0, false, 0); !result)
+    {
       return result;
     }
 
@@ -202,20 +211,17 @@ keyboard::send_text(std::string_view text) -> Result<void>
   return {};
 }
 
-auto
-keyboard::control_fd() const -> int
+auto keyboard::control_fd() const -> int
 {
   return control_fd_;
 }
 
-auto
-keyboard::interrupt_fd() const -> int
+auto keyboard::interrupt_fd() const -> int
 {
   return interrupt_fd_;
 }
 
-auto
-keyboard::handle_connection(int control_fd, int interrupt_fd) -> void
+auto keyboard::handle_connection(int control_fd, int interrupt_fd) -> void
 {
   std::lock_guard lock(connection_mutex_);
 
@@ -226,40 +232,44 @@ keyboard::handle_connection(int control_fd, int interrupt_fd) -> void
   spdlog::info("HID device connected");
 }
 
-auto
-keyboard::build_report(uint8_t key_code, bool pressed, uint8_t modifiers) const -> KeyboardReport
+auto keyboard::build_report(uint8_t key_code, bool pressed, uint8_t modifiers) const -> KeyboardReport
 {
   KeyboardReport report;
   report.modifiers = modifiers;
   report.reserved = 0;
 
-  if (pressed && key_code != 0) {
+  if (pressed && key_code != 0)
+  {
     report.key_codes[0] = key_code;
   }
 
   return report;
 }
 
-auto
-key_from_char(char c) -> uint8_t
+auto key_from_char(char c) -> uint8_t
 {
-  if (c >= 'a' && c <= 'z') {
+  if (c >= 'a' && c <= 'z')
+  {
     return key_code::A + (c - 'a');
   }
 
-  if (c >= 'A' && c <= 'Z') {
+  if (c >= 'A' && c <= 'Z')
+  {
     return key_code::A + (c - 'A');
   }
 
-  if (c >= '1' && c <= '9') {
+  if (c >= '1' && c <= '9')
+  {
     return 0x1E + (c - '1');
   }
 
-  if (c == '0') {
+  if (c == '0')
+  {
     return 0x27;
   }
 
-  switch (c) {
+  switch (c)
+  {
     case ' ':
       return key_code::SPACE;
     case '\n':
@@ -295,14 +305,15 @@ key_from_char(char c) -> uint8_t
   }
 }
 
-auto
-modifiers_from_char(char c) -> uint8_t
+auto modifiers_from_char(char c) -> uint8_t
 {
-  if (c >= 'A' && c <= 'Z') {
+  if (c >= 'A' && c <= 'Z')
+  {
     return modifier::LEFT_SHIFT;
   }
 
-  switch (c) {
+  switch (c)
+  {
     case '!':
     case '@':
     case '#':

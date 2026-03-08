@@ -5,7 +5,8 @@
 #include <expected>
 #include <string_view>
 
-namespace fakekbd::hid {
+namespace fakekbd::hid
+{
 
 enum class protocol : uint8_t
 {
@@ -60,7 +61,8 @@ constexpr uint16_t L2CAP_PSM_INTERRUPT = 0x13;
 
 constexpr std::string_view HID_PROFILE_UUID = "00001124-0000-1000-8000-00805f9b34fb";
 
-namespace key_code {
+namespace key_code
+{
 constexpr uint8_t A = 0x04;
 constexpr uint8_t B = 0x05;
 constexpr uint8_t C = 0x06;
@@ -113,7 +115,8 @@ constexpr uint8_t ARROW_DOWN = 0x51;
 constexpr uint8_t ARROW_UP = 0x52;
 }
 
-namespace modifier {
+namespace modifier
+{
 constexpr uint8_t LEFT_CTRL = 0x01;
 constexpr uint8_t LEFT_SHIFT = 0x02;
 constexpr uint8_t LEFT_ALT = 0x04;
@@ -126,9 +129,9 @@ constexpr uint8_t RIGHT_GUI = 0x80;
 
 struct KeyboardReport
 {
-  uint8_t modifiers = 0;
-  uint8_t reserved = 0;
-  std::array<uint8_t, 6> key_codes{};
+    uint8_t modifiers = 0;
+    uint8_t reserved = 0;
+    std::array<uint8_t, 6> key_codes{};
 } __attribute__((packed));
 
 static_assert(sizeof(KeyboardReport) == 8, "Keyboard report must be 8 bytes");

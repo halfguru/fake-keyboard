@@ -5,7 +5,8 @@
 #include "libfakekbd/hid/report.hpp"
 #include "libfakekbd/hid/types.hpp"
 
-namespace fakekbd {
+namespace fakekbd
+{
 
 using keyboard = hid::keyboard;
 using config = fakekbd::config;
