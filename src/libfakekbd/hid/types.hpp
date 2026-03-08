@@ -1,3 +1,9 @@
+/// @file types.hpp
+/// @brief Core types and constants for the HID library
+///
+/// Defines HID protocol types, key codes, modifiers, and error handling.
+/// These types are used throughout the fake-keyboard library.
+
 #pragma once
 
 #include <array>
@@ -5,21 +11,25 @@
 #include <expected>
 #include <string_view>
 
-namespace fakekbd::hid {
+namespace fakekbd::hid
+{
 
+/// @brief HID protocol mode
 enum class protocol : uint8_t
 {
-  Boot = 0x00,
-  Report = 0x01
+  Boot = 0x00,  ///< Boot protocol (limited, for BIOS/UEFI)
+  Report = 0x01 ///< Report protocol (full functionality)
 };
 
+/// @brief HID report type
 enum class report_type : uint8_t
 {
-  Input = 0x01,
-  Output = 0x02,
-  Feature = 0x03
+  Input = 0x01,  ///< Device to host
+  Output = 0x02, ///< Host to device (e.g., LEDs)
+  Feature = 0x03 ///< Configuration data
 };
 
+/// @brief HID transaction type
 enum class transaction_type : uint8_t
 {
   Handshake = 0x00,
@@ -34,6 +44,7 @@ enum class transaction_type : uint8_t
   Datc = 0xb0
 };
 
+/// @brief Result codes for HID operations
 enum class handshake_result : uint8_t
 {
   Successful = 0x00,
@@ -45,6 +56,7 @@ enum class handshake_result : uint8_t
   ErrFatal = 0x0f
 };
 
+/// @brief Control channel operations
 enum class control_operation : uint8_t
 {
   Nop = 0x00,
@@ -55,12 +67,21 @@ enum class control_operation : uint8_t
   VirtualCableUnplug = 0x05
 };
 
+/// @brief L2CAP PSM for HID control channel
 constexpr uint16_t L2CAP_PSM_CONTROL = 0x11;
+
+/// @brief L2CAP PSM for HID interrupt channel
 constexpr uint16_t L2CAP_PSM_INTERRUPT = 0x13;
 
+/// @brief Bluetooth HID Profile UUID
 constexpr std::string_view HID_PROFILE_UUID = "00001124-0000-1000-8000-00805f9b34fb";
 
-namespace key_code {
+/// @brief HID key codes (from USB HID Usage Tables)
+///
+/// These are the standard key codes used in HID reports.
+/// @see https://usb.org/sites/default/files/hut1_4.pdf
+namespace key_code
+{
 constexpr uint8_t A = 0x04;
 constexpr uint8_t B = 0x05;
 constexpr uint8_t C = 0x06;
@@ -113,26 +134,45 @@ constexpr uint8_t ARROW_DOWN = 0x51;
 constexpr uint8_t ARROW_UP = 0x52;
 }
 
-namespace modifier {
+/// @brief Keyboard modifier key flags
+///
+/// Bitmask values for the first byte of a keyboard report.
+/// Can be combined with bitwise OR.
+namespace modifier
+{
 constexpr uint8_t LEFT_CTRL = 0x01;
 constexpr uint8_t LEFT_SHIFT = 0x02;
 constexpr uint8_t LEFT_ALT = 0x04;
-constexpr uint8_t LEFT_GUI = 0x08;
+constexpr uint8_t LEFT_GUI = 0x08; ///< Windows/Command/Super key
 constexpr uint8_t RIGHT_CTRL = 0x10;
 constexpr uint8_t RIGHT_SHIFT = 0x20;
 constexpr uint8_t RIGHT_ALT = 0x40;
 constexpr uint8_t RIGHT_GUI = 0x80;
 }
 
+/// @brief Standard USB HID keyboard report (8 bytes)
+///
+/// This is the standard boot-protocol keyboard report format.
+/// - Byte 0: Modifier keys (Ctrl, Shift, Alt, GUI)
+/// - Byte 1: Reserved (0x00)
+/// - Bytes 2-7: Up to 6 simultaneous key codes
+///
+/// @example
+/// @code
+/// KeyboardReport report;
+/// report.modifiers = modifier::LEFT_SHIFT;
+/// report.key_codes[0] = key_code::A;  // 'A' (shifted)
+/// @endcode
 struct KeyboardReport
 {
-  uint8_t modifiers = 0;
-  uint8_t reserved = 0;
-  std::array<uint8_t, 6> key_codes{};
+    uint8_t modifiers = 0;
+    uint8_t reserved = 0;
+    std::array<uint8_t, 6> key_codes{};
 } __attribute__((packed));
 
 static_assert(sizeof(KeyboardReport) == 8, "Keyboard report must be 8 bytes");
 
+/// @brief Error codes for fallible operations
 enum class error : uint8_t
 {
   SocketCreation,
@@ -149,6 +189,17 @@ enum class error : uint8_t
   NotConnected
 };
 
+/// @brief Result type for fallible operations
+///
+/// Uses std::expected for modern error handling without exceptions.
+///
+/// @example
+/// @code
+/// Result<void> result = keyboard.listen("hci0");
+/// if (!result) {
+///     spdlog::error("Failed: {}", static_cast<int>(result.error()));
+/// }
+/// @endcode
 template<typename T>
 using Result = std::expected<T, error>;
 

@@ -1,11 +1,11 @@
 #include "report.hpp"
 #include <stdexcept>
 
-namespace fakekbd::hid {
+namespace fakekbd::hid
+{
 
-namespace {
-constexpr uint8_t LONG_ITEM_PREFIX = 0xFE;
-
+namespace
+{
 enum class item_type : uint8_t
 {
   MAIN = 0,
@@ -53,26 +53,33 @@ enum class local_item_tag : uint8_t
   DELIMITER = 10
 };
 
-auto
-encode_short_item(item_type type, uint8_t tag, uint32_t value) -> std::vector<uint8_t>
+auto encode_short_item(item_type type, uint8_t tag, uint32_t value) -> std::vector<uint8_t>
 {
   std::vector<uint8_t> item;
   uint8_t size = 0;
 
-  if (value <= 0xFF) {
+  if (value <= 0xFF)
+  {
     size = 1;
-  } else if (value <= 0xFFFF) {
+  }
+  else if (value <= 0xFFFF)
+  {
     size = 2;
-  } else if (value <= 0xFFFFFF) {
+  }
+  else if (value <= 0xFFFFFF)
+  {
     size = 3;
-  } else {
+  }
+  else
+  {
     size = 4;
   }
 
   uint8_t const prefix = (static_cast<uint8_t>(tag) << 4) | (static_cast<uint8_t>(type) << 2) | (size == 4 ? 3 : size);
   item.push_back(prefix);
 
-  for (uint8_t i = 0; i < size; ++i) {
+  for (uint8_t i = 0; i < size; ++i)
+  {
     item.push_back(static_cast<uint8_t>((value >> (i * 8)) & 0xFF));
   }
 
@@ -81,72 +88,63 @@ encode_short_item(item_type type, uint8_t tag, uint32_t value) -> std::vector<ui
 
 }
 
-auto
-report_descriptor_builder::usage_page(uint16_t page) -> report_descriptor_builder&
+auto report_descriptor_builder::usage_page(uint16_t page) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::GLOBAL, static_cast<uint8_t>(global_item_tag::USAGE_PAGE), page);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::usage(uint16_t usage) -> report_descriptor_builder&
+auto report_descriptor_builder::usage(uint16_t usage) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::LOCAL, static_cast<uint8_t>(local_item_tag::USAGE), usage);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::usage_min(uint16_t min) -> report_descriptor_builder&
+auto report_descriptor_builder::usage_min(uint16_t min) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::LOCAL, static_cast<uint8_t>(local_item_tag::USAGE_MINIMUM), min);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::usage_max(uint16_t max) -> report_descriptor_builder&
+auto report_descriptor_builder::usage_max(uint16_t max) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::LOCAL, static_cast<uint8_t>(local_item_tag::USAGE_MAXIMUM), max);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::collection(uint8_t type) -> report_descriptor_builder&
+auto report_descriptor_builder::collection(uint8_t type) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::MAIN, static_cast<uint8_t>(main_item_tag::COLLECTION), type);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::end_collection() -> report_descriptor_builder&
+auto report_descriptor_builder::end_collection() -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::MAIN, static_cast<uint8_t>(main_item_tag::END_COLLECTION), 0);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::report_size(uint8_t size) -> report_descriptor_builder&
+auto report_descriptor_builder::report_size(uint8_t size) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::GLOBAL, static_cast<uint8_t>(global_item_tag::REPORT_SIZE), size);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::report_count(uint8_t count) -> report_descriptor_builder&
+auto report_descriptor_builder::report_count(uint8_t count) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::GLOBAL, static_cast<uint8_t>(global_item_tag::REPORT_COUNT), count);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::logical_min(int32_t min) -> report_descriptor_builder&
+auto report_descriptor_builder::logical_min(int32_t min) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(
     item_type::GLOBAL, static_cast<uint8_t>(global_item_tag::LOGICAL_MINIMUM), static_cast<uint32_t>(min));
@@ -154,8 +152,7 @@ report_descriptor_builder::logical_min(int32_t min) -> report_descriptor_builder
   return *this;
 }
 
-auto
-report_descriptor_builder::logical_max(int32_t max) -> report_descriptor_builder&
+auto report_descriptor_builder::logical_max(int32_t max) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(
     item_type::GLOBAL, static_cast<uint8_t>(global_item_tag::LOGICAL_MAXIMUM), static_cast<uint32_t>(max));
@@ -163,52 +160,45 @@ report_descriptor_builder::logical_max(int32_t max) -> report_descriptor_builder
   return *this;
 }
 
-auto
-report_descriptor_builder::input(uint8_t flags) -> report_descriptor_builder&
+auto report_descriptor_builder::input(uint8_t flags) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::MAIN, static_cast<uint8_t>(main_item_tag::INPUT), flags);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::output(uint8_t flags) -> report_descriptor_builder&
+auto report_descriptor_builder::output(uint8_t flags) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::MAIN, static_cast<uint8_t>(main_item_tag::OUTPUT), flags);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::feature(uint8_t flags) -> report_descriptor_builder&
+auto report_descriptor_builder::feature(uint8_t flags) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::MAIN, static_cast<uint8_t>(main_item_tag::FEATURE), flags);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::report_id(uint8_t id) -> report_descriptor_builder&
+auto report_descriptor_builder::report_id(uint8_t id) -> report_descriptor_builder&
 {
   auto const item = encode_short_item(item_type::GLOBAL, static_cast<uint8_t>(global_item_tag::REPORT_ID), id);
   descriptor_.insert(descriptor_.end(), item.begin(), item.end());
   return *this;
 }
 
-auto
-report_descriptor_builder::build() const -> std::vector<uint8_t>
+auto report_descriptor_builder::build() const -> std::vector<uint8_t>
 {
   return descriptor_;
 }
 
-auto
-report_descriptor_builder::data() const -> std::span<uint8_t const>
+auto report_descriptor_builder::data() const -> std::span<uint8_t const>
 {
   return descriptor_;
 }
 
-auto
-build_keyboard_report_descriptor() -> std::vector<uint8_t>
+auto build_keyboard_report_descriptor() -> std::vector<uint8_t>
 {
   return report_descriptor_builder{}
     .usage_page(usage_page::GENERIC_DESKTOP)

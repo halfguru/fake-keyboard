@@ -9,11 +9,14 @@ class FakeKeyboardRecipe(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
 
     def requirements(self):
-        self.requires("spdlog/1.12.0")
-        self.requires("nlohmann_json/3.11.2")
+        self.requires("spdlog/1.17.0")
+        self.requires("nlohmann_json/3.12.0")
 
     def build_requirements(self):
-        self.test_requires("catch2/3.5.0")
+        self.test_requires("catch2/3.13.0")
+        self.tool_requires("ninja/1.13.2")
+        self.tool_requires("cmake/[>=3.25]")
+        self.tool_requires("pkgconf/2.5.1")
 
     exports_sources = (
         "CMakeLists.txt",

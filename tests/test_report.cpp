@@ -144,8 +144,10 @@ TEST_CASE("build_keyboard_report_descriptor contains usage page", "[unit][report
   auto descriptor = build_keyboard_report_descriptor();
 
   bool found_usage_page = false;
-  for (size_t i = 0; i < descriptor.size() - 1; ++i) {
-    if (descriptor[i] == 0x05 && descriptor[i + 1] == 0x01) {
+  for (size_t i = 0; i < descriptor.size() - 1; ++i)
+  {
+    if (descriptor[i] == 0x05 && descriptor[i + 1] == 0x01)
+    {
       found_usage_page = true;
       break;
     }

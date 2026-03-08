@@ -8,42 +8,45 @@
 #include <termios.h>
 #include <unistd.h>
 
-namespace {
+namespace
+{
 std::atomic<bool> running{ true };
 
-void
-signal_handler(int /*signum*/)
+void signal_handler(int /*signum*/)
 {
   running = false;
 }
 
-auto
-set_terminal_mode(bool raw) -> void
+auto set_terminal_mode(bool raw) -> void
 {
   static struct termios original_termios;
   static bool saved = false;
 
-  if (!saved) {
+  if (!saved)
+  {
     tcgetattr(STDIN_FILENO, &original_termios);
     saved = true;
   }
 
-  if (raw) {
+  if (raw)
+  {
     struct termios raw_termios = original_termios;
     raw_termios.c_lflag &= ~(ICANON | ECHO);
     raw_termios.c_cc[VMIN] = 0;
     raw_termios.c_cc[VTIME] = 0;
     tcsetattr(STDIN_FILENO, TCSANOW, &raw_termios);
-  } else {
+  }
+  else
+  {
     tcsetattr(STDIN_FILENO, TCSANOW, &original_termios);
   }
 }
 
-auto
-get_config_path() -> std::string
+auto get_config_path() -> std::string
 {
   auto const* home = std::getenv("HOME");
-  if (!home) {
+  if (!home)
+  {
     return "";
   }
 
@@ -56,8 +59,7 @@ get_config_path() -> std::string
 }
 }
 
-auto
-main() -> int
+auto main() -> int
 {
   std::signal(SIGINT, signal_handler);
   std::signal(SIGTERM, signal_handler);
@@ -67,11 +69,15 @@ main() -> int
   auto config_path = get_config_path();
   std::optional<fakekbd::config> config;
 
-  if (!config_path.empty() && std::filesystem::exists(config_path)) {
+  if (!config_path.empty() && std::filesystem::exists(config_path))
+  {
     config = fakekbd::config_parser::from_file(config_path);
-    if (config) {
+    if (config)
+    {
       spdlog::info("Loaded configuration from {}", config_path.c_str());
-    } else {
+    }
+    else
+    {
       spdlog::warn("Failed to load configuration from {}", config_path.c_str());
     }
   }
@@ -82,36 +88,51 @@ main() -> int
   fakekbd::keyboard kbd;
 
   spdlog::info("Registering HID profile with BlueZ...");
-  fakekbd::bluetooth::dbus_profile_manager dbus_mgr;
+  fakekbd::bluetooth::DBusProfileManager dbusMgr;
 
   auto sdp_record = fakekbd::bluetooth::build_keyboard_sdp_record(device_name);
 
-  if (auto result = dbus_mgr.register_hid_profile(
+  if (auto result = dbusMgr.registerHidProfile(
         adapter,
         device_name,
         sdp_record,
         [&](bdaddr_t const& device, int fd) {
-          char addr_str[18] = { 0 };
-          ba2str(&device, addr_str);
-          spdlog::info("Device connected: {} on fd {}", addr_str, fd);
+          char addrStr[18] = { 0 };
+          ba2str(&device, addrStr);
+          spdlog::info("Device connected: {} on fd {}", addrStr, fd);
         },
         []() { spdlog::info("Device disconnected"); });
-      !result) {
+      !result)
+  {
     spdlog::error("Failed to register HID profile");
     return 1;
   }
 
   spdlog::info("Making adapter discoverable and pairable...");
-  if (auto result = dbus_mgr.setAdapterDiscoverable(adapter, true); !result) {
+  if (auto result = dbusMgr.setAdapterDiscoverable(adapter, true); !result)
+  {
     spdlog::warn("Failed to make adapter discoverable (you may need to run: sudo bluetoothctl discoverable on)");
   }
 
-  if (auto result = dbus_mgr.setAdapterPairable(adapter, true); !result) {
+  if (auto result = dbusMgr.setAdapterPairable(adapter, true); !result)
+  {
     spdlog::warn("Failed to make adapter pairable (you may need to run: sudo bluetoothctl pairable on)");
   }
 
+  if (auto result = dbusMgr.registerAgent(); !result)
+  {
+    spdlog::warn("Failed to register pairing agent (you may need to run: sudo bluetoothctl agent on)");
+  }
+
+  spdlog::info("Configuring adapter...");
+  if (auto result = dbusMgr.setAdapterName(adapter, device_name); !result)
+  {
+    spdlog::warn("Failed to set adapter name");
+  }
+
   spdlog::info("Starting L2CAP HID server on PSM 0x11 (control) and 0x13 (interrupt)...");
-  if (auto result = kbd.listen(adapter); !result) {
+  if (auto result = kbd.listen(adapter); !result)
+  {
     spdlog::error("Failed to start L2CAP server");
     return 1;
   }
@@ -123,18 +144,23 @@ main() -> int
   set_terminal_mode(true);
 
   char c;
-  while (running) {
-    dbus_mgr.processEvents();
+  while (running)
+  {
+    dbusMgr.processEvents();
 
-    if (kbd.is_connected()) {
+    if (kbd.is_connected())
+    {
       ssize_t n = read(STDIN_FILENO, &c, 1);
-      if (n > 0) {
-        if (c == '\x03') {
+      if (n > 0)
+      {
+        if (c == '\x03')
+        {
           running = false;
           break;
         }
 
-        if (auto result = kbd.send_text(std::string(1, c)); !result) {
+        if (auto result = kbd.send_text(std::string(1, c)); !result)
+        {
           spdlog::error("Failed to send keystroke");
         }
       }
