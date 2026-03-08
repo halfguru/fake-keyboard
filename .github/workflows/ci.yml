@@ -16,7 +16,14 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libbluetooth-dev libsdbus-c++-dev
+          sudo apt-get install -y libbluetooth-dev libsystemd-dev
+          
+          # Install sdbus-c++ v2.0.0 from source (Ubuntu has older version)
+          git clone --depth 1 --branch v2.0.0 https://github.com/Kistler-Group/sdbus-cpp.git /tmp/sdbus-cpp
+          cd /tmp/sdbus-cpp
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_LIB_SYSTEMD=OFF
+          cmake --build build -j$(nproc)
+          sudo cmake --install build
       
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
