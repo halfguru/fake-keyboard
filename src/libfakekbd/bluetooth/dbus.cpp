@@ -231,8 +231,19 @@ auto DBusProfileManager::registerAgent() -> hid::Result<void>
     pimpl_->agentObject = sdbus::createObject(*pimpl_->connection, sdbus::ObjectPath{ "/org/bluez/agent" });
 
     pimpl_->agentObject
-      ->addVTable(sdbus::registerMethod("Release").implementedAs([]() {}),
-                  sdbus::registerMethod("Cancel").implementedAs([]() {}))
+      ->addVTable(
+        sdbus::registerMethod("Release").implementedAs([]() {}),
+        sdbus::registerMethod("Cancel").implementedAs([]() {}),
+        sdbus::registerMethod("RequestPasskey").implementedAs([](std::string const& device) -> uint32_t {
+          spdlog::debug("RequestPasskey for device: {}", device);
+          return 0;
+        }),
+        sdbus::registerMethod("RequestConfirmation").implementedAs([](std::string const& device, uint32_t passkey) {
+          spdlog::debug("RequestConfirmation for device: {} passkey: {}", device, passkey);
+        }),
+        sdbus::registerMethod("AuthorizeService").implementedAs([](std::string const& device, std::string const& uuid) {
+          spdlog::debug("AuthorizeService for device: {} uuid: {}", device, uuid);
+        }))
       .forInterface("org.bluez.Agent1");
 
     auto agentManager =
