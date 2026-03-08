@@ -25,8 +25,10 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(BLUEZ REQUIRED bluez)
 pkg_check_modules(SDBUS REQUIRED sdbus-c++)
+
+find_path(BLUEZ_INCLUDE_DIRS NAMES bluetooth/bluetooth.h)
+find_library(BLUEZ_LIBRARIES NAMES bluetooth)
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/build/Release/generators")
 
