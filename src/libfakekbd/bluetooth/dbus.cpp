@@ -248,8 +248,8 @@ DBusProfileManager::unregisterAgent() -> void
       .withArguments(sdbus::ObjectPath{ "/org/bluez/agent" });
 
     pimpl_->agentObject.reset();
-  } catch (sdbus::Error const& /*e*/) {
-    // Ignore errors during unregister
+  } catch (sdbus::Error const& e) {
+    spdlog::debug("Ignoring error during agent unregister: {}", e.what());
   }
 }
 

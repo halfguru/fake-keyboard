@@ -11,7 +11,7 @@
 
 namespace fakekbd::hid {
 
-enum class connection_state
+enum class connection_state : uint8_t
 {
   Disconnected,
   Connecting,

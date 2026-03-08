@@ -4,8 +4,6 @@
 namespace fakekbd::hid {
 
 namespace {
-constexpr uint8_t LONG_ITEM_PREFIX = 0xFE;
-
 enum class item_type : uint8_t
 {
   MAIN = 0,
