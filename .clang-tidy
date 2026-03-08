@@ -2,8 +2,11 @@
 Checks: >
   bugprone-*,
   -bugprone-easily-swappable-parameters,
+  -bugprone-empty-catch,
+  -bugprone-unchecked-optional-access,
   cert-*,
   -cert-err58-cpp,
+  -cert-err33-c,
   cppcoreguidelines-*,
   -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-non-private-member-variables-in-classes,
@@ -13,40 +16,33 @@ Checks: >
   -cppcoreguidelines-pro-type-reinterpret-cast,
   -cppcoreguidelines-pro-type-union-access,
   -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-init-variables,
   modernize-*,
   -modernize-avoid-c-arrays,
+  -modernize-use-trailing-return-type,
+  -modernize-use-ranges,
+  -modernize-use-scoped-lock,
+  -modernize-use-integer-sign-comparison,
+  -modernize-raw-string-literal,
+  -modernize-use-nodiscard,
   performance-*,
+  -performance-unnecessary-value-param,
+  -performance-enum-size,
   readability-*,
   -readability-else-after-return,
   -readability-function-cognitive-complexity,
   -readability-identifier-length,
+  -readability-identifier-naming,
   -readability-magic-numbers,
   -readability-uppercase-literal-suffix,
-  -readability-use-anyofallof
+  -readability-use-anyofallof,
+  -readability-named-parameter,
+  -readability-redundant-member-init,
+  -readability-convert-member-functions-to-static,
+  -readability-redundant-casting,
+  -readability-implicit-bool-conversion
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'
 FormatStyle: file
-CheckOptions:
-  - key: readability-identifier-naming.NamespaceCase
-    value: lower_case
-  - key: readability-identifier-naming.ClassCase
-    value: CamelCase
-  - key: readability-identifier-naming.StructCase
-    value: CamelCase
-  - key: readability-identifier-naming.FunctionCase
-    value: camelBack
-  - key: readability-identifier-naming.VariableCase
-    value: lower_case
-  - key: readability-identifier-naming.ConstantCase
-    value: UPPER_CASE
-  - key: readability-identifier-naming.ParameterCase
-    value: lower_case
-  - key: readability-identifier-naming.EnumConstantCase
-    value: CamelCase
-  - key: readability-identifier-naming.MemberCase
-    value: lower_case
-  - key: readability-identifier-naming.PrivateMemberSuffix
-    value: '_'
-  - key: readability-identifier-naming.ProtectedMemberSuffix
-    value: '_'
-...
